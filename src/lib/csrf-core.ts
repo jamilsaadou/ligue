@@ -1,3 +1,5 @@
+import { shouldUseSecureCookies } from './cookie-flags';
+
 const CSRF_TTL_SECONDS = 60 * 60 * 24;
 
 export const CSRF_COOKIE_NAME = 'av_csrf';
@@ -18,7 +20,7 @@ export const generateCsrfToken = () => {
 
 export const getCsrfCookieOptions = () => ({
   httpOnly: false,
-  secure: process.env.NODE_ENV === 'production',
+  secure: shouldUseSecureCookies(),
   sameSite: 'lax' as const,
   path: '/',
   maxAge: CSRF_TTL_SECONDS

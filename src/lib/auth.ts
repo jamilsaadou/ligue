@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 import type { RowDataPacket } from 'mysql2';
 import { pool } from './db';
+import { shouldUseSecureCookies } from './cookie-flags';
 
 export type UserRole = 'admin' | 'user';
 
@@ -79,7 +80,7 @@ export const getSessionCookieName = () => SESSION_COOKIE;
 
 export const getSessionCookieOptions = () => ({
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
+  secure: shouldUseSecureCookies(),
   sameSite: 'lax' as const,
   path: '/',
   maxAge: SESSION_TTL_SECONDS

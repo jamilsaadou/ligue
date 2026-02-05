@@ -1,3 +1,5 @@
+import { shouldUseSecureCookies } from './cookie-flags';
+
 export type UserRole = 'admin' | 'user';
 
 type SessionPayload = {
@@ -218,7 +220,7 @@ export const shouldRotateSession = (payload: SessionPayload) => {
 
 export const getSessionCookieOptions = () => ({
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
+  secure: shouldUseSecureCookies(),
   sameSite: 'lax' as const,
   path: '/',
   maxAge: SESSION_TTL_SECONDS
