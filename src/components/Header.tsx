@@ -13,7 +13,7 @@ export default function Header() {
     { href: '/diagnostic', label: 'Diagnostic', icon: FileText },
     { href: '/ressources', label: 'Ressources', icon: HelpCircle },
     { href: '/a-propos', label: 'À propos', icon: Users },
-    { href: '/connexion', label: 'Connexion', icon: LogIn },
+    { href: '/login', label: 'Connexion', icon: LogIn },
   ];
 
   return (

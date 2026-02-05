@@ -6,7 +6,7 @@ export default async function AdminStatsPage() {
   const session = await getSession();
 
   if (!session || session.role !== 'admin') {
-    redirect('/connexion');
+    redirect('/login');
   }
 
   return (
