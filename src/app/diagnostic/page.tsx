@@ -64,9 +64,24 @@ export default function DiagnosticPage() {
           const now = new Date();
           const daysDiff = (now.getTime() - savedDate.getTime()) / (1000 * 60 * 60 * 24);
           
-          if (daysDiff < 7 && parsed.isStarted && Object.keys(parsed.answers).length > 0) {
+          const parsedCategory = categories[parsed.currentCategoryIndex];
+          const isValidProgress =
+            parsed.currentCategoryIndex >= 0 &&
+            parsed.currentCategoryIndex < categories.length &&
+            parsed.currentQuestionIndex >= 0 &&
+            parsedCategory &&
+            parsed.currentQuestionIndex < parsedCategory.questions.length;
+
+          if (
+            daysDiff < 7 &&
+            parsed.isStarted &&
+            Object.keys(parsed.answers).length > 0 &&
+            isValidProgress
+          ) {
             setSavedProgress(parsed);
             setShowResumeModal(true);
+          } else if (!isValidProgress) {
+            localStorage.removeItem(STORAGE_KEY);
           }
         } catch (e) {
           localStorage.removeItem(STORAGE_KEY);
@@ -129,7 +144,7 @@ export default function DiagnosticPage() {
 
   const currentCategory = categories[currentCategoryIndex];
   const currentQuestion = currentCategory?.questions[currentQuestionIndex];
-  const CurrentCategoryIcon = currentCategory.icon;
+  const CurrentCategoryIcon = currentCategory?.icon;
   
   const totalQuestions = categories.reduce((acc, cat) => acc + cat.questions.length, 0);
   const answeredQuestions = Object.keys(answers).length;
@@ -277,6 +292,25 @@ export default function DiagnosticPage() {
             </p>
           </div>
         </motion.div>
+      </div>
+    );
+  }
+
+  if (!currentCategory || !currentQuestion || !CurrentCategoryIcon) {
+    return (
+      <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-10">
+        <div className="glass-card w-full max-w-xl p-7 md:p-10 text-center">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">
+            Diagnostic indisponible
+          </h1>
+          <p className="text-slate-600 mb-6">
+            Le contenu du diagnostic a changé ou les données locales sont corrompues.
+            Vous pouvez recommencer pour repartir sur une base saine.
+          </p>
+          <button className="glass-button" onClick={handleRestart}>
+            Recommencer le diagnostic
+          </button>
+        </div>
       </div>
     );
   }
