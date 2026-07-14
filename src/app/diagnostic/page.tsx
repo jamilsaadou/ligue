@@ -90,19 +90,55 @@ interface CategoryScore {
 }
 
 interface SavedProgress {
+  version?: number;
   mode: Mode;
   diagnosticId: string;
+  diagnosticSnapshot?: DiagnosticData;
   currentCategoryIndex: number;
   currentQuestionIndex: number;
   answers: Record<string, number>;
   isStarted: boolean;
+  showResults?: boolean;
   attemptId?: string;
   startedAt?: string;
+  completedAt?: string;
+  submittedAt?: string;
   savedAt: string;
 }
 
 const STORAGE_KEY = 'violentometre_diagnostic_progress';
+const STORAGE_VERSION = 2;
+const STORAGE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const DIAGNOSTIC_FALLBACK_ID = 'static';
+
+const readSavedProgress = (): SavedProgress | null => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const value = window.localStorage.getItem(STORAGE_KEY);
+    return value ? (JSON.parse(value) as SavedProgress) : null;
+  } catch (error) {
+    console.warn('Diagnostic cache read error:', error);
+    return null;
+  }
+};
+
+const writeSavedProgress = (progress: SavedProgress) => {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    return true;
+  } catch (error) {
+    console.warn('Diagnostic cache write error:', error);
+    return false;
+  }
+};
+
+const removeSavedProgress = () => {
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch (error) {
+    console.warn('Diagnostic cache clear error:', error);
+  }
+};
 
 const iconMap: Record<string, LucideIcon> = {
   Heart,
@@ -212,6 +248,7 @@ export default function DiagnosticPage() {
   const [diagnosticList, setDiagnosticList] = useState<DiagnosticListItem[]>([]);
   const [diagnostic, setDiagnostic] = useState<DiagnosticData | null>(null);
   const [isDiagnosticLoading, setIsDiagnosticLoading] = useState(true);
+  const [diagnosticLoadFailed, setDiagnosticLoadFailed] = useState(false);
   const [selectedDiagnosticId, setSelectedDiagnosticId] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>(null);
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
@@ -231,14 +268,20 @@ export default function DiagnosticPage() {
     let isMounted = true;
     const loadDiagnosticList = async () => {
       setIsDiagnosticLoading(true);
+      setDiagnosticLoadFailed(false);
       try {
         const response = await fetch('/api/diagnostic/list');
         const data = await response.json();
         if (isMounted && response.ok && data?.diagnostics) {
           setDiagnosticList(data.diagnostics);
+        } else if (isMounted) {
+          setDiagnosticLoadFailed(true);
         }
       } catch (error) {
         console.error('Diagnostic list fetch error:', error);
+        if (isMounted) {
+          setDiagnosticLoadFailed(true);
+        }
       } finally {
         if (isMounted) {
           setIsDiagnosticLoading(false);
@@ -275,65 +318,61 @@ export default function DiagnosticPage() {
 
   // Check for saved progress once diagnostics are loaded
   useEffect(() => {
-    if (diagnosticList.length === 0 || typeof window === 'undefined') return;
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) {
+    if (isDiagnosticLoading || typeof window === 'undefined') return;
+    const parsed = readSavedProgress();
+    if (!parsed) return;
+
+    const savedAt = new Date(parsed.savedAt).getTime();
+    const isFresh = Number.isFinite(savedAt) && Date.now() - savedAt <= STORAGE_TTL_MS;
+    const savedDiagnostic = diagnosticList.find((item) => item.id === parsed.diagnosticId);
+    const targetDiagnostic =
+      savedDiagnostic ||
+      parsed.diagnosticSnapshot ||
+      (parsed.diagnosticId === DIAGNOSTIC_FALLBACK_ID ? fallbackDiagnostic : null);
+
+    if (!targetDiagnostic) {
+      if (!diagnosticLoadFailed) removeSavedProgress();
       return;
     }
-    try {
-      const parsed: SavedProgress = JSON.parse(saved);
-      const savedDate = new Date(parsed.savedAt);
-      const now = new Date();
-      const daysDiff = (now.getTime() - savedDate.getTime()) / (1000 * 60 * 60 * 24);
 
-      // Find the saved diagnostic
-      const savedDiagnostic = diagnosticList.find(d => d.id === parsed.diagnosticId);
-      if (!savedDiagnostic && parsed.diagnosticId !== DIAGNOSTIC_FALLBACK_ID) {
-        localStorage.removeItem(STORAGE_KEY);
-        return;
-      }
+    const parsedCategory = targetDiagnostic.categories[parsed.currentCategoryIndex];
+    const isValidProgress =
+      parsed.currentCategoryIndex >= 0 &&
+      parsed.currentCategoryIndex < targetDiagnostic.categories.length &&
+      parsed.currentQuestionIndex >= 0 &&
+      Boolean(parsedCategory) &&
+      parsed.currentQuestionIndex < parsedCategory.questions.length;
+    const hasAnswers = Object.keys(parsed.answers || {}).length > 0;
+    const hasMode = parsed.mode === 'self' || parsed.mode === 'other';
 
-      const targetDiagnostic = savedDiagnostic || fallbackDiagnostic;
-      const parsedCategory = targetDiagnostic.categories[parsed.currentCategoryIndex];
-      const isValidProgress =
-        parsed.currentCategoryIndex >= 0 &&
-        parsed.currentCategoryIndex < targetDiagnostic.categories.length &&
-        parsed.currentQuestionIndex >= 0 &&
-        parsedCategory &&
-        parsed.currentQuestionIndex < parsedCategory.questions.length;
-
-      if (
-        daysDiff < 7 &&
-        parsed.isStarted &&
-        Object.keys(parsed.answers).length > 0 &&
-        isValidProgress
-      ) {
-        setSavedProgress(parsed);
-        setShowResumeModal(true);
-      } else if (!isValidProgress) {
-        localStorage.removeItem(STORAGE_KEY);
-      }
-    } catch {
-      localStorage.removeItem(STORAGE_KEY);
+    if (isFresh && parsed.isStarted && hasAnswers && hasMode && isValidProgress) {
+      setSavedProgress(parsed);
+      setShowResumeModal(true);
+      return;
     }
-  }, [diagnosticList]);
+
+    removeSavedProgress();
+  }, [diagnosticList, diagnosticLoadFailed, isDiagnosticLoading]);
 
   // Auto-save progress when answering questions
   useEffect(() => {
     if (!diagnostic) return;
     if (isStarted && Object.keys(answers).length > 0 && !showResults) {
       const progressData: SavedProgress = {
+        version: STORAGE_VERSION,
         mode,
         diagnosticId: diagnostic.id,
+        diagnosticSnapshot: diagnostic,
         currentCategoryIndex,
         currentQuestionIndex,
         answers,
         isStarted,
+        showResults: false,
         attemptId: attemptId || undefined,
         startedAt: attemptStartedAt || undefined,
         savedAt: new Date().toISOString()
       };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(progressData));
+      writeSavedProgress(progressData);
     }
   }, [
     answers,
@@ -347,9 +386,9 @@ export default function DiagnosticPage() {
     attemptStartedAt
   ]);
 
-  // Clear saved progress when completing or restarting
+  // Clear saved progress when the user explicitly starts over.
   const clearSavedProgress = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
+    removeSavedProgress();
     setSavedProgress(null);
   }, []);
 
@@ -359,7 +398,13 @@ export default function DiagnosticPage() {
       const resumedDiagnostic =
         savedProgress.diagnosticId === DIAGNOSTIC_FALLBACK_ID
           ? fallbackDiagnostic
-          : diagnosticList.find((item) => item.id === savedProgress.diagnosticId);
+          : diagnosticList.find((item) => item.id === savedProgress.diagnosticId) ||
+            savedProgress.diagnosticSnapshot;
+      if (!resumedDiagnostic) {
+        clearSavedProgress();
+        setShowResumeModal(false);
+        return;
+      }
       const resumedAttemptId = savedProgress.attemptId || crypto.randomUUID();
       const resumedStartedAt = savedProgress.startedAt || new Date().toISOString();
       const resumedAnswersCount = Object.keys(savedProgress.answers).length;
@@ -371,13 +416,16 @@ export default function DiagnosticPage() {
         : resumedAnswersCount;
 
       setSelectedDiagnosticId(savedProgress.diagnosticId);
+      setDiagnostic(resumedDiagnostic);
       setMode(savedProgress.mode);
       setCurrentCategoryIndex(savedProgress.currentCategoryIndex);
       setCurrentQuestionIndex(savedProgress.currentQuestionIndex);
       setAnswers(savedProgress.answers);
       setIsStarted(savedProgress.isStarted);
+      setShowResults(Boolean(savedProgress.showResults));
       setAttemptId(resumedAttemptId);
       setAttemptStartedAt(resumedStartedAt);
+      hasSubmittedRef.current = Boolean(savedProgress.submittedAt);
       trackedMilestonesRef.current = new Set(
         [25, 50, 75].filter(
           (milestone) =>
@@ -387,7 +435,10 @@ export default function DiagnosticPage() {
       );
       setShowResumeModal(false);
 
-      if (savedProgress.diagnosticId !== DIAGNOSTIC_FALLBACK_ID) {
+      if (
+        !savedProgress.showResults &&
+        savedProgress.diagnosticId !== DIAGNOSTIC_FALLBACK_ID
+      ) {
         fetch('/api/diagnostic/attempt', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -502,7 +553,7 @@ export default function DiagnosticPage() {
         const categoryScores = calculateCategoryScores();
         const alertLevel = getAlertLevelForScore(totalScore, maxScore);
 
-        await fetch('/api/diagnostic/submit', {
+        const response = await fetch('/api/diagnostic/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -520,6 +571,19 @@ export default function DiagnosticPage() {
             categoryScores
           })
         });
+        if (!response.ok) {
+          throw new Error(`Diagnostic submission failed with status ${response.status}`);
+        }
+
+        const cached = readSavedProgress();
+        if (cached?.attemptId === attemptId && cached.showResults) {
+          const submittedProgress = {
+            ...cached,
+            submittedAt: new Date().toISOString()
+          };
+          writeSavedProgress(submittedProgress);
+          setSavedProgress(submittedProgress);
+        }
       } catch (error) {
         console.error('Failed to submit diagnostic', error);
       }
@@ -580,8 +644,9 @@ export default function DiagnosticPage() {
   }
 
   const handleAnswer = (questionId: string, points: number) => {
-    if (!currentCategory) return;
-    setAnswers(prev => ({ ...prev, [questionId]: points }));
+    if (!currentCategory || !diagnostic) return;
+    const nextAnswers = { ...answers, [questionId]: points };
+    setAnswers(nextAnswers);
     
     // Auto-advance to next question after a short delay
     setTimeout(() => {
@@ -591,8 +656,25 @@ export default function DiagnosticPage() {
         setCurrentCategoryIndex(prev => prev + 1);
         setCurrentQuestionIndex(0);
       } else {
+        const completedAt = new Date().toISOString();
+        const completedProgress: SavedProgress = {
+          version: STORAGE_VERSION,
+          mode,
+          diagnosticId: diagnostic.id,
+          diagnosticSnapshot: diagnostic,
+          currentCategoryIndex,
+          currentQuestionIndex,
+          answers: nextAnswers,
+          isStarted: true,
+          showResults: true,
+          attemptId: attemptId || undefined,
+          startedAt: attemptStartedAt || undefined,
+          completedAt,
+          savedAt: completedAt
+        };
+        writeSavedProgress(completedProgress);
+        setSavedProgress(completedProgress);
         setShowResults(true);
-        clearSavedProgress(); // Clear saved progress when completing the diagnostic
       }
     }, 300);
   };
@@ -629,7 +711,8 @@ export default function DiagnosticPage() {
     // Calculate total questions from saved diagnostic
     const savedDiag = savedProgress.diagnosticId === DIAGNOSTIC_FALLBACK_ID
       ? fallbackDiagnostic
-      : diagnosticList.find(d => d.id === savedProgress.diagnosticId);
+      : diagnosticList.find(d => d.id === savedProgress.diagnosticId) ||
+        savedProgress.diagnosticSnapshot;
     const savedTotalQuestions = savedDiag
       ? savedDiag.categories.reduce((acc, cat) => acc + cat.questions.length, 0)
       : Object.keys(savedProgress.answers).length;
@@ -652,10 +735,14 @@ export default function DiagnosticPage() {
                 <Clock className="w-8 h-8 text-[#eb5f2a]" />
               </motion.div>
               <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
-                Reprendre le diagnostic ?
+                {savedProgress.showResults
+                  ? 'Revoir votre résultat ?'
+                  : 'Reprendre le diagnostic ?'}
               </h1>
               <p className="text-slate-600">
-                Vous avez un diagnostic en cours
+                {savedProgress.showResults
+                  ? 'Votre dernier diagnostic est conservé sur cet appareil'
+                  : 'Vous avez un diagnostic en cours'}
               </p>
             </div>
 
@@ -698,7 +785,7 @@ export default function DiagnosticPage() {
                 whileTap={{ scale: 0.98 }}
               >
                 <PlayCircle className="w-5 h-5" />
-                Reprendre où j’en étais
+                {savedProgress.showResults ? 'Voir mon résultat' : 'Reprendre où j’en étais'}
               </motion.button>
               
               <motion.button
