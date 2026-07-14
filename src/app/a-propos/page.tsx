@@ -114,8 +114,8 @@ export default function AboutPage() {
 
             <p className="text-lg text-slate-600 leading-relaxed max-w-2xl mx-auto">
               Première organisation du Niger à se déclarer officiellement féministe.
-              Nous militons pour que les survivantes des violences puissent s'exprimer,
-              être crues et bénéficier d'une prise en charge bienveillante.
+              Nous militons pour que les survivantes des violences puissent s&apos;exprimer,
+              être crues et bénéficier d&apos;une prise en charge bienveillante.
             </p>
           </motion.div>
         </div>
@@ -320,10 +320,10 @@ export default function AboutPage() {
                   ALERTE <span className="gradient-text">VIOLENCE</span>
                 </h2>
                 <p className="text-slate-600 leading-relaxed mb-6">
-                  Notre plateforme numérique d'autodiagnostic est une innovation majeure :
-                  aucun outil similaire n'existe dans la sous-région. ALERTE VIOLENCE comble
+                  Notre plateforme numérique d&apos;autodiagnostic est une innovation majeure :
+                  aucun outil similaire n&apos;existe dans la sous-région. ALERTE VIOLENCE comble
                   un vide crucial et répond à un besoin massif de plus de 200 millions de personnes
-                  en Afrique de l'Ouest.
+                  en Afrique de l&apos;Ouest.
                 </p>
                 <ul className="space-y-3 mb-8">
                   {[
@@ -450,7 +450,7 @@ export default function AboutPage() {
               Nous contacter
             </h2>
             <p className="text-slate-600 mb-10 leading-relaxed max-w-xl mx-auto">
-              Pour toute question, partenariat ou soutien, n'hésitez pas à nous contacter.
+              Pour toute question, partenariat ou soutien, n&apos;hésitez pas à nous contacter.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

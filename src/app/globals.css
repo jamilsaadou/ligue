@@ -21,16 +21,18 @@
 *::before,
 *::after {
   box-sizing: border-box;
-  margin: 0;
 }
 
 html {
   scroll-behavior: smooth;
+  scrollbar-gutter: stable both-edges;
 }
 
 body {
   font-family: var(--font-sans), "Manrope", "Segoe UI", sans-serif;
   background: radial-gradient(1200px 600px at 10% -10%, #ffffff 0%, #fafafa 40%, #f1f2f4 100%);
+  margin: 0;
+  width: 100%;
   min-height: 100vh;
   color: var(--text-primary);
   overflow-x: hidden;

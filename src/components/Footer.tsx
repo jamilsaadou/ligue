@@ -1,11 +1,15 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Heart, Mail, Phone, MapPin, ExternalLink, Facebook, Twitter, Instagram } from 'lucide-react';
+import { Heart, Mail, Phone, MapPin, Facebook, Twitter, Instagram } from 'lucide-react';
+import { useSiteConfig } from '@/hooks/useSiteConfig';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const siteConfig = useSiteConfig();
+  const emergencyHref = `tel:${siteConfig.emergencyNumber.replace(/[^\d+]/g, '')}`;
 
   const quickLinks = [
     { href: '/diagnostic', label: 'Commencer le diagnostic' },
@@ -30,22 +34,25 @@ export default function Footer() {
             <div className="lg:col-span-2">
               <Link href="/" className="flex items-center gap-3 mb-6 group">
                 <motion.div 
-                  className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#eb5f2a] to-[#d14d1a] flex items-center justify-center"
+                  className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#eb5f2a] to-[#d14d1a] flex items-center justify-center overflow-hidden"
                   whileHover={{ scale: 1.05, rotate: 5 }}
                 >
-                  <Heart className="w-6 h-6 text-white" />
+                  {siteConfig.logoDataUrl ? (
+                    <Image src={siteConfig.logoDataUrl} alt={`Logo ${siteConfig.siteName}`} width={48} height={48} unoptimized className="w-full h-full object-contain bg-white p-1" />
+                  ) : (
+                    <Heart className="w-6 h-6 text-white" />
+                  )}
                 </motion.div>
                 <div>
                   <h2 className="text-xl font-bold text-slate-900 group-hover:text-[#eb5f2a] transition-colors">
-                    ALERTE VIOLENCE
+                    {siteConfig.siteName}
                   </h2>
-                  <p className="text-xs text-slate-500">Diagnostiquer pour mieux protéger</p>
+                  <p className="text-xs text-slate-500">{siteConfig.siteTagline}</p>
                 </div>
               </Link>
               
               <p className="text-slate-600 leading-relaxed mb-6 max-w-md">
-                Première plateforme numérique d'autodiagnostic des violences en Afrique de l'Ouest. 
-                Un outil gratuit, confidentiel et accessible pour identifier les situations de violence.
+                {siteConfig.siteDescription}
               </p>
 
               {/* Social Links */}
@@ -103,29 +110,37 @@ export default function Footer() {
               <ul className="space-y-4">
                 <li>
                   <a
-                    href="mailto:lndf.niger@gmail.com"
+                    href={`mailto:${siteConfig.supportEmail}`}
                     className="text-slate-600 hover:text-[#eb5f2a] transition-colors flex items-start gap-3"
                   >
                     <Mail className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                    <span>lndf.niger@gmail.com</span>
+                    <span>{siteConfig.supportEmail}</span>
                   </a>
                 </li>
                 <li>
                   <a
-                    href="tel:17"
+                    href={emergencyHref}
                     className="text-slate-600 hover:text-[#eb5f2a] transition-colors flex items-start gap-3"
                   >
                     <Phone className="w-5 h-5 mt-0.5 flex-shrink-0" />
                     <div>
-                      <span className="block">Urgence : 17</span>
+                      <span className="block">Urgence : {siteConfig.emergencyNumber}</span>
                       <span className="text-xs text-slate-400">Police Secours</span>
                     </div>
                   </a>
                 </li>
                 <li className="flex items-start gap-3 text-slate-600">
                   <MapPin className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                  <span>Niamey, Niger</span>
+                  <span>{siteConfig.siteLocation}</span>
                 </li>
+                {siteConfig.supportPhone && (
+                  <li>
+                    <a href={`tel:${siteConfig.supportPhone.replace(/[^\d+]/g, '')}`} className="text-slate-600 hover:text-[#eb5f2a] transition-colors flex items-start gap-3">
+                      <Phone className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                      <span>{siteConfig.supportPhone}</span>
+                    </a>
+                  </li>
+                )}
               </ul>
             </div>
           </div>
@@ -143,18 +158,18 @@ export default function Footer() {
                   <Phone className="w-6 h-6 text-red-600" />
                 </div>
                 <div>
-                  <h4 className="text-slate-900 font-semibold">Besoin d'aide urgente ?</h4>
+                  <h4 className="text-slate-900 font-semibold">Besoin d’aide urgente ?</h4>
                   <p className="text-slate-600 text-sm">En cas de danger immédiat, appelez les secours</p>
                 </div>
               </div>
               <motion.a
-                href="tel:17"
+                href={emergencyHref}
                 className="px-6 py-3 rounded-xl bg-red-500 text-white font-semibold flex items-center gap-2 hover:bg-red-600 transition-colors"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <Phone className="w-5 h-5" />
-                Appeler le 17
+                Appeler le {siteConfig.emergencyNumber}
               </motion.a>
             </div>
           </motion.div>
@@ -163,7 +178,7 @@ export default function Footer() {
           <div className="mt-10 pt-6 border-t border-slate-200">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <p className="text-slate-500 text-sm text-center md:text-left">
-                © {currentYear} ALERTE VIOLENCE - Ligue Nigérienne des Droits des Femmes (LNDF). Tous droits réservés.
+                © {currentYear} {siteConfig.siteName} - {siteConfig.organizationName}. Tous droits réservés.
               </p>
               <div className="flex items-center gap-2 text-slate-500 text-sm">
                 <span>Fait avec</span>

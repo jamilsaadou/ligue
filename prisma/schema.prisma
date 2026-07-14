@@ -1,0 +1,245 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  super_admin
+  admin
+  user
+}
+
+enum AdminModule {
+  statistics
+  diagnostics
+  users
+  logs
+  resources
+  settings
+}
+
+enum DiagnosticStatus {
+  draft
+  active
+  archived
+}
+
+enum DiagnosticAttemptStatus {
+  started
+  completed
+}
+
+enum ResourceType {
+  association
+  institution
+  urgence
+  ligne_ecoute
+}
+
+model User {
+  id           String       @id @default(uuid())
+  email        String       @unique
+  passwordHash String
+  role         UserRole     @default(user)
+  adminModules AdminModule[] @default([])
+  name         String?
+  isActive     Boolean      @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  diagnostics  Diagnostic[] @relation("DiagnosticAuthor")
+  submissions  DiagnosticSubmission[]
+  attempts     DiagnosticAttempt[]
+  tracking     TrackingEvent[]
+}
+
+model Diagnostic {
+  id          String               @id @default(uuid())
+  title       String
+  description String?
+  status      DiagnosticStatus     @default(draft)
+  version     Int                  @default(1)
+  createdById String?
+  createdBy   User?                @relation("DiagnosticAuthor", fields: [createdById], references: [id])
+  categories  DiagnosticCategory[]
+  submissions DiagnosticSubmission[]
+  attempts    DiagnosticAttempt[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model DiagnosticCategory {
+  id           String             @id @default(uuid())
+  diagnosticId String
+  diagnostic   Diagnostic         @relation(fields: [diagnosticId], references: [id], onDelete: Cascade)
+  name         String
+  slug         String
+  description  String?
+  icon         String?
+  sortOrder    Int
+  questions    DiagnosticQuestion[]
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([diagnosticId])
+}
+
+model DiagnosticQuestion {
+  id         String             @id @default(uuid())
+  categoryId String
+  category   DiagnosticCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  text       String
+  sortOrder  Int
+  options    DiagnosticOption[]
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  @@index([categoryId])
+}
+
+model DiagnosticOption {
+  id         String             @id @default(uuid())
+  questionId String
+  question   DiagnosticQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  text       String
+  points     Int
+  sortOrder  Int
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  @@index([questionId])
+}
+
+model DiagnosticSubmission {
+  id          String     @id @default(uuid())
+  diagnosticId String
+  diagnostic  Diagnostic @relation(fields: [diagnosticId], references: [id], onDelete: Cascade)
+  attemptId   String?    @unique
+  attempt     DiagnosticAttempt? @relation(fields: [attemptId], references: [id], onDelete: SetNull)
+  userId      String?
+  user        User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  sessionId   String?
+  mode        String
+  totalScore  Int
+  maxScore    Int
+  level       String
+  durationMs  Int?
+  answers     Json
+  categoryScores Json
+  createdAt   DateTime   @default(now())
+
+  @@index([diagnosticId])
+  @@index([createdAt])
+  @@index([sessionId])
+  @@index([level])
+}
+
+model DiagnosticAttempt {
+  id             String                  @id
+  diagnosticId   String
+  diagnostic     Diagnostic              @relation(fields: [diagnosticId], references: [id], onDelete: Cascade)
+  userId         String?
+  user           User?                   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  sessionId      String?
+  mode           String
+  status         DiagnosticAttemptStatus @default(started)
+  answersCount   Int                     @default(0)
+  totalQuestions Int
+  totalScore     Int?
+  maxScore       Int?
+  level          String?
+  durationMs     Int?
+  referrer       String?
+  country        String?
+  userAgent      String?
+  browser        String?
+  os             String?
+  deviceType     String?
+  startedAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  completedAt    DateTime?
+  submission     DiagnosticSubmission?
+
+  @@index([diagnosticId])
+  @@index([status])
+  @@index([startedAt])
+  @@index([sessionId])
+  @@index([userId])
+}
+
+model Country {
+  id              String     @id @default(uuid())
+  name            String
+  code            String     @unique
+  emergencyNumber String?
+  resources       Resource[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}
+
+model Resource {
+  id          String       @id @default(uuid())
+  countryId   String
+  country     Country      @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  name        String
+  type        ResourceType
+  contact     String
+  description String?
+  address     String?
+  website     String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([countryId])
+}
+
+model Setting {
+  key       String @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model TrackingEvent {
+  id         String   @id @default(uuid())
+  sessionId  String?
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  eventName  String   @default("page_view")
+  eventCategory String?
+  path       String
+  referrer   String?
+  durationMs Int?
+  ip         String?
+  country    String?
+  city       String?
+  userAgent  String?
+  deviceName String?
+  deviceType String?
+  browser    String?
+  os         String?
+  language   String?
+  screen     String?
+  timezone   String?
+  utmSource  String?
+  utmMedium  String?
+  utmCampaign String?
+  diagnosticId String?
+  attemptId  String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([path])
+  @@index([userId])
+  @@index([eventName])
+  @@index([sessionId])
+  @@index([diagnosticId])
+  @@index([attemptId])
+}

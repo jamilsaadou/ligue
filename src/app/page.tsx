@@ -10,8 +10,6 @@ import {
   Users, 
   Heart, 
   CheckCircle,
-  Globe,
-  Smartphone,
   MessageCircle,
   ChevronRight
 } from 'lucide-react';
@@ -39,13 +37,6 @@ export default function Home() {
       title: "Orienté aide",
       description: "Ressources d'aide adaptées à votre situation et votre pays."
     }
-  ];
-
-  const stats = [
-    { number: "38", label: "Questions", description: "pour un diagnostic complet" },
-    { number: "6", label: "Catégories", description: "de violences analysées" },
-    { number: "8", label: "Pays", description: "couverts en Afrique de l'Ouest" },
-    { number: "100%", label: "Confidentiel", description: "et anonyme" }
   ];
 
   const howItWorks = [
@@ -91,7 +82,7 @@ export default function Home() {
                 transition={{ delay: 0.2 }}
               >
                 <span className="w-2 h-2 rounded-full bg-[#eb5f2a] animate-pulse" />
-                <span className="text-[#eb5f2a] text-sm font-medium">Première plateforme en Afrique de l'Ouest</span>
+                <span className="text-[#eb5f2a] text-sm font-medium">Première plateforme en Afrique de l&apos;Ouest</span>
               </motion.div>
 
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight mb-6">
@@ -100,8 +91,8 @@ export default function Home() {
               </h1>
 
               <p className="text-lg text-slate-600 mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed">
-                ALERTE VIOLENCE est la première plateforme numérique d'autodiagnostic des violences 
-                en Afrique de l'Ouest. Évaluez votre situation ou celle d'un proche de manière 
+                ALERTE VIOLENCE est la première plateforme numérique d&apos;autodiagnostic des violences
+                en Afrique de l&apos;Ouest. Évaluez votre situation ou celle d&apos;un proche de manière
                 anonyme et confidentielle.
               </p>
 
@@ -156,7 +147,7 @@ export default function Home() {
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-slate-900">Violentomètre</h3>
-                      <p className="text-slate-500">Outil d'autodiagnostic</p>
+                      <p className="text-slate-500">Outil d&apos;autodiagnostic</p>
                     </div>
                   </div>
 
@@ -328,7 +319,7 @@ export default function Home() {
               6 catégories <span className="gradient-text">analysées</span>
             </h2>
             <p className="text-slate-600 max-w-2xl mx-auto leading-relaxed">
-              Notre questionnaire couvre l'ensemble des formes de violence pour un diagnostic complet.
+              Notre questionnaire couvre l&apos;ensemble des formes de violence pour un diagnostic complet.
             </p>
           </motion.div>
 
@@ -449,7 +440,7 @@ export default function Home() {
                 Prêt(e) à faire le <span className="gradient-text">diagnostic</span> ?
               </h2>
               <p className="text-slate-600 max-w-xl mx-auto mb-8">
-                Quelques minutes suffisent pour évaluer votre situation. C'est gratuit, 
+                Quelques minutes suffisent pour évaluer votre situation. C&apos;est gratuit,
                 anonyme et totalement confidentiel.
               </p>
 

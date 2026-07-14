@@ -1,30 +1,89 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { 
-  ArrowRight, 
-  ArrowLeft, 
-  User, 
-  Users, 
-  Shield, 
+import DiagnosticResultShare from '@/components/DiagnosticResultShare';
+import {
+  getClientAnalyticsContext,
+  sendAnalyticsEvent
+} from '@/lib/analytics-client';
+import {
+  ArrowRight,
+  ArrowLeft,
+  User,
+  Users,
+  Shield,
   CheckCircle,
   AlertTriangle,
+  Bell,
+  BookOpen,
+  Brain,
+  ClipboardCheck,
+  MessageCircle,
+  Eye,
+  Globe,
+  HandHeart,
   Heart,
   RotateCcw,
   Home,
+  Lock,
+  MapPin,
   Phone,
   PlayCircle,
+  Scale,
   Trash2,
-  Clock
+  Clock,
+  FileText,
+  Smartphone,
+  Target,
+  UserCheck,
+  UserX,
+  type LucideIcon
 } from 'lucide-react';
-import { categories, getAlertLevel, getCategoryLevel, Category } from '@/data/questions';
+import { categories as staticCategories } from '@/data/questions';
 
 type Mode = 'self' | 'other' | null;
 
+type DiagnosticOption = {
+  id: string;
+  text: string;
+  points: number;
+};
+
+type DiagnosticQuestion = {
+  id: string;
+  text: string;
+  options: DiagnosticOption[];
+};
+
+type DiagnosticCategory = {
+  id: string;
+  name: string;
+  description?: string;
+  iconName?: string | null;
+  icon?: LucideIcon | string | null;
+  questions: DiagnosticQuestion[];
+};
+
+type DiagnosticData = {
+  id: string;
+  title: string;
+  description?: string;
+  categories: DiagnosticCategory[];
+};
+
+type DiagnosticListItem = {
+  id: string;
+  title: string;
+  description?: string;
+  totalQuestions: number;
+  totalCategories: number;
+  categories: DiagnosticCategory[];
+};
+
 interface CategoryScore {
-  categoryId: number;
+  categoryId: string;
   score: number;
   maxScore: number;
   level: 'safe' | 'warning' | 'danger';
@@ -32,79 +91,261 @@ interface CategoryScore {
 
 interface SavedProgress {
   mode: Mode;
+  diagnosticId: string;
   currentCategoryIndex: number;
   currentQuestionIndex: number;
-  answers: Record<number, number>;
+  answers: Record<string, number>;
   isStarted: boolean;
+  attemptId?: string;
+  startedAt?: string;
   savedAt: string;
 }
 
 const STORAGE_KEY = 'violentometre_diagnostic_progress';
+const DIAGNOSTIC_FALLBACK_ID = 'static';
+
+const iconMap: Record<string, LucideIcon> = {
+  Heart,
+  MessageCircle,
+  Eye,
+  Shield,
+  AlertTriangle,
+  Users,
+  Smartphone,
+  Lock,
+  UserX,
+  UserCheck,
+  HandHeart,
+  Brain,
+  Scale,
+  Target,
+  Bell,
+  Phone,
+  MapPin,
+  Home,
+  Globe,
+  BookOpen,
+  ClipboardCheck
+};
+
+const resolveCategoryIcon = (category?: Pick<DiagnosticCategory, 'icon' | 'iconName'>) => {
+  if (!category) return Shield;
+  if (typeof category.icon === 'string') {
+    return iconMap[category.icon] ?? Shield;
+  }
+  return category.icon ?? (category.iconName ? iconMap[category.iconName] : null) ?? Shield;
+};
+
+const fallbackDiagnostic: DiagnosticData = {
+  id: DIAGNOSTIC_FALLBACK_ID,
+  title: 'Violentomètre',
+  description: '',
+  categories: staticCategories.map((category) => ({
+    id: String(category.id),
+    name: category.name,
+    description: category.description,
+    icon: category.icon,
+    questions: category.questions.map((question, index) => ({
+      id: String(question.id ?? `${category.id}-${index}`),
+      text: question.text,
+      options: question.options.map((option, optionIndex) => ({
+        id: `${question.id ?? `${category.id}-${index}`}-${optionIndex}`,
+        text: option.text,
+        points: option.points
+      }))
+    }))
+  }))
+};
+
+const getAlertLevelForScore = (score: number, maxScore: number) => {
+  const percentage = maxScore ? (score / maxScore) * 100 : 0;
+  if (percentage <= 25) {
+    return {
+      level: 'safe' as const,
+      title: 'Relation saine',
+      subtitle: 'Profitez !',
+      message:
+        'Votre relation semble saine et équilibrée. Continuez à cultiver le respect mutuel, la communication ouverte et la confiance.',
+      color: '#64748b',
+      bgClass: 'level-safe'
+    };
+  }
+  if (percentage <= 60) {
+    return {
+      level: 'warning' as const,
+      title: 'Vigilance',
+      subtitle: 'Dis STOP !',
+      message:
+        "Des signes préoccupants sont présents dans votre relation. Il est important d'en parler et de poser des limites claires. N'hésitez pas à consulter un professionnel.",
+      color: '#eb5f2a',
+      bgClass: 'level-warning'
+    };
+  }
+  return {
+    level: 'danger' as const,
+    title: 'Danger',
+    subtitle: 'Protège-toi !',
+    message:
+      "Vous subissez des violences. Ce n'est PAS normal et ce n'est PAS de votre faute. Protégez-vous et demandez de l'aide immédiatement.",
+    color: '#ef4444',
+    bgClass: 'level-danger'
+  };
+};
+
+const getCategoryLevel = (score: number, maxPoints: number) => {
+  const percentage = maxPoints ? (score / maxPoints) * 100 : 0;
+  if (percentage <= 25) return 'safe';
+  if (percentage <= 60) return 'warning';
+  return 'danger';
+};
+
+const getCategoryMaxPoints = (category: DiagnosticCategory) =>
+  category.questions.reduce((acc, question) => {
+    const maxOption = Math.max(...question.options.map((option) => option.points));
+    return acc + (Number.isFinite(maxOption) ? maxOption : 0);
+  }, 0);
+
+const getDiagnosticMaxScore = (data: DiagnosticData) =>
+  data.categories.reduce((acc, category) => acc + getCategoryMaxPoints(category), 0);
 
 export default function DiagnosticPage() {
+  const [diagnosticList, setDiagnosticList] = useState<DiagnosticListItem[]>([]);
+  const [diagnostic, setDiagnostic] = useState<DiagnosticData | null>(null);
+  const [isDiagnosticLoading, setIsDiagnosticLoading] = useState(true);
+  const [selectedDiagnosticId, setSelectedDiagnosticId] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>(null);
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [answers, setAnswers] = useState<Record<string, number>>({});
   const [showResults, setShowResults] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
   const [showResumeModal, setShowResumeModal] = useState(false);
   const [savedProgress, setSavedProgress] = useState<SavedProgress | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [attemptId, setAttemptId] = useState<string | null>(null);
+  const [attemptStartedAt, setAttemptStartedAt] = useState<string | null>(null);
+  const hasSubmittedRef = useRef(false);
+  const trackedMilestonesRef = useRef<Set<number>>(new Set());
 
-  // Check for saved progress on mount
+  // Load list of available diagnostics
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        try {
-          const parsed: SavedProgress = JSON.parse(saved);
-          // Check if the saved progress is valid and not too old (7 days)
-          const savedDate = new Date(parsed.savedAt);
-          const now = new Date();
-          const daysDiff = (now.getTime() - savedDate.getTime()) / (1000 * 60 * 60 * 24);
-          
-          const parsedCategory = categories[parsed.currentCategoryIndex];
-          const isValidProgress =
-            parsed.currentCategoryIndex >= 0 &&
-            parsed.currentCategoryIndex < categories.length &&
-            parsed.currentQuestionIndex >= 0 &&
-            parsedCategory &&
-            parsed.currentQuestionIndex < parsedCategory.questions.length;
-
-          if (
-            daysDiff < 7 &&
-            parsed.isStarted &&
-            Object.keys(parsed.answers).length > 0 &&
-            isValidProgress
-          ) {
-            setSavedProgress(parsed);
-            setShowResumeModal(true);
-          } else if (!isValidProgress) {
-            localStorage.removeItem(STORAGE_KEY);
-          }
-        } catch (e) {
-          localStorage.removeItem(STORAGE_KEY);
+    let isMounted = true;
+    const loadDiagnosticList = async () => {
+      setIsDiagnosticLoading(true);
+      try {
+        const response = await fetch('/api/diagnostic/list');
+        const data = await response.json();
+        if (isMounted && response.ok && data?.diagnostics) {
+          setDiagnosticList(data.diagnostics);
+        }
+      } catch (error) {
+        console.error('Diagnostic list fetch error:', error);
+      } finally {
+        if (isMounted) {
+          setIsDiagnosticLoading(false);
         }
       }
-      setIsLoaded(true);
-    }
+    };
+    loadDiagnosticList();
+    return () => {
+      isMounted = false;
+    };
   }, []);
+
+  // Load full diagnostic when selected
+  useEffect(() => {
+    if (!selectedDiagnosticId) return;
+
+    // Check if it's the fallback
+    if (selectedDiagnosticId === DIAGNOSTIC_FALLBACK_ID) {
+      setDiagnostic(fallbackDiagnostic);
+      return;
+    }
+
+    // Find from list (already has full data)
+    const selected = diagnosticList.find(d => d.id === selectedDiagnosticId);
+    if (selected) {
+      setDiagnostic({
+        id: selected.id,
+        title: selected.title,
+        description: selected.description,
+        categories: selected.categories
+      });
+    }
+  }, [selectedDiagnosticId, diagnosticList]);
+
+  // Check for saved progress once diagnostics are loaded
+  useEffect(() => {
+    if (diagnosticList.length === 0 || typeof window === 'undefined') return;
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) {
+      return;
+    }
+    try {
+      const parsed: SavedProgress = JSON.parse(saved);
+      const savedDate = new Date(parsed.savedAt);
+      const now = new Date();
+      const daysDiff = (now.getTime() - savedDate.getTime()) / (1000 * 60 * 60 * 24);
+
+      // Find the saved diagnostic
+      const savedDiagnostic = diagnosticList.find(d => d.id === parsed.diagnosticId);
+      if (!savedDiagnostic && parsed.diagnosticId !== DIAGNOSTIC_FALLBACK_ID) {
+        localStorage.removeItem(STORAGE_KEY);
+        return;
+      }
+
+      const targetDiagnostic = savedDiagnostic || fallbackDiagnostic;
+      const parsedCategory = targetDiagnostic.categories[parsed.currentCategoryIndex];
+      const isValidProgress =
+        parsed.currentCategoryIndex >= 0 &&
+        parsed.currentCategoryIndex < targetDiagnostic.categories.length &&
+        parsed.currentQuestionIndex >= 0 &&
+        parsedCategory &&
+        parsed.currentQuestionIndex < parsedCategory.questions.length;
+
+      if (
+        daysDiff < 7 &&
+        parsed.isStarted &&
+        Object.keys(parsed.answers).length > 0 &&
+        isValidProgress
+      ) {
+        setSavedProgress(parsed);
+        setShowResumeModal(true);
+      } else if (!isValidProgress) {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    } catch {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }, [diagnosticList]);
 
   // Auto-save progress when answering questions
   useEffect(() => {
+    if (!diagnostic) return;
     if (isStarted && Object.keys(answers).length > 0 && !showResults) {
       const progressData: SavedProgress = {
         mode,
+        diagnosticId: diagnostic.id,
         currentCategoryIndex,
         currentQuestionIndex,
         answers,
         isStarted,
+        attemptId: attemptId || undefined,
+        startedAt: attemptStartedAt || undefined,
         savedAt: new Date().toISOString()
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(progressData));
     }
-  }, [answers, currentCategoryIndex, currentQuestionIndex, isStarted, mode, showResults]);
+  }, [
+    answers,
+    currentCategoryIndex,
+    currentQuestionIndex,
+    diagnostic,
+    isStarted,
+    mode,
+    showResults,
+    attemptId,
+    attemptStartedAt
+  ]);
 
   // Clear saved progress when completing or restarting
   const clearSavedProgress = useCallback(() => {
@@ -115,12 +356,51 @@ export default function DiagnosticPage() {
   // Resume saved progress
   const handleResumeProgress = () => {
     if (savedProgress) {
+      const resumedDiagnostic =
+        savedProgress.diagnosticId === DIAGNOSTIC_FALLBACK_ID
+          ? fallbackDiagnostic
+          : diagnosticList.find((item) => item.id === savedProgress.diagnosticId);
+      const resumedAttemptId = savedProgress.attemptId || crypto.randomUUID();
+      const resumedStartedAt = savedProgress.startedAt || new Date().toISOString();
+      const resumedAnswersCount = Object.keys(savedProgress.answers).length;
+      const resumedTotalQuestions = resumedDiagnostic
+        ? resumedDiagnostic.categories.reduce(
+            (total, category) => total + category.questions.length,
+            0
+          )
+        : resumedAnswersCount;
+
+      setSelectedDiagnosticId(savedProgress.diagnosticId);
       setMode(savedProgress.mode);
       setCurrentCategoryIndex(savedProgress.currentCategoryIndex);
       setCurrentQuestionIndex(savedProgress.currentQuestionIndex);
       setAnswers(savedProgress.answers);
       setIsStarted(savedProgress.isStarted);
+      setAttemptId(resumedAttemptId);
+      setAttemptStartedAt(resumedStartedAt);
+      trackedMilestonesRef.current = new Set(
+        [25, 50, 75].filter(
+          (milestone) =>
+            resumedTotalQuestions > 0 &&
+            (resumedAnswersCount / resumedTotalQuestions) * 100 >= milestone
+        )
+      );
       setShowResumeModal(false);
+
+      if (savedProgress.diagnosticId !== DIAGNOSTIC_FALLBACK_ID) {
+        fetch('/api/diagnostic/attempt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...getClientAnalyticsContext(),
+            attemptId: resumedAttemptId,
+            diagnosticId: savedProgress.diagnosticId,
+            mode: savedProgress.mode || 'self',
+            totalQuestions: resumedTotalQuestions,
+            answersCount: resumedAnswersCount
+          })
+        }).catch(() => undefined);
+      }
     }
   };
 
@@ -142,34 +422,165 @@ export default function DiagnosticPage() {
     });
   };
 
+  const categories = useMemo(() => diagnostic?.categories ?? [], [diagnostic]);
   const currentCategory = categories[currentCategoryIndex];
   const currentQuestion = currentCategory?.questions[currentQuestionIndex];
-  const CurrentCategoryIcon = currentCategory?.icon;
-  
+  const CurrentCategoryIcon = resolveCategoryIcon(currentCategory);
+
   const totalQuestions = categories.reduce((acc, cat) => acc + cat.questions.length, 0);
   const answeredQuestions = Object.keys(answers).length;
-  const progress = (answeredQuestions / totalQuestions) * 100;
+  const progress = totalQuestions ? (answeredQuestions / totalQuestions) * 100 : 0;
 
   // Calculate scores
-  const calculateTotalScore = () => {
+  const calculateTotalScore = useCallback(() => {
     return Object.values(answers).reduce((acc, score) => acc + score, 0);
-  };
+  }, [answers]);
 
-  const calculateCategoryScores = (): CategoryScore[] => {
-    return categories.map(category => {
+  const calculateCategoryScores = useCallback((): CategoryScore[] => {
+    return categories.map((category) => {
       const categoryScore = category.questions.reduce((acc, question) => {
         return acc + (answers[question.id] || 0);
       }, 0);
+      const maxScore = getCategoryMaxPoints(category);
       return {
         categoryId: category.id,
         score: categoryScore,
-        maxScore: category.maxPoints,
-        level: getCategoryLevel(categoryScore, category.maxPoints)
+        maxScore,
+        level: getCategoryLevel(categoryScore, maxScore)
       };
     });
+  }, [answers, categories]);
+
+  const handleBeginDiagnostic = () => {
+    if (!diagnostic || !mode) return;
+    const nextAttemptId = crypto.randomUUID();
+    const startedAt = new Date().toISOString();
+    setAttemptId(nextAttemptId);
+    setAttemptStartedAt(startedAt);
+    trackedMilestonesRef.current = new Set();
+    setIsStarted(true);
+
+    if (diagnostic.id === DIAGNOSTIC_FALLBACK_ID) {
+      sendAnalyticsEvent({
+        eventName: 'diagnostic_started',
+        eventCategory: 'diagnostic',
+        diagnosticId: diagnostic.id,
+        attemptId: nextAttemptId,
+        metadata: { mode, totalQuestions }
+      });
+      return;
+    }
+
+    fetch('/api/diagnostic/attempt', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...getClientAnalyticsContext(),
+        attemptId: nextAttemptId,
+        diagnosticId: diagnostic.id,
+        mode,
+        totalQuestions,
+        answersCount: 0
+      })
+    }).catch(() => undefined);
   };
 
-  const handleAnswer = (questionId: number, points: number) => {
+  useEffect(() => {
+    if (
+      !diagnostic ||
+      diagnostic.id === DIAGNOSTIC_FALLBACK_ID ||
+      !showResults ||
+      hasSubmittedRef.current
+    ) {
+      return;
+    }
+    const submitResults = async () => {
+      hasSubmittedRef.current = true;
+      try {
+        const totalScore = calculateTotalScore();
+        const maxScore = getDiagnosticMaxScore(diagnostic);
+        const categoryScores = calculateCategoryScores();
+        const alertLevel = getAlertLevelForScore(totalScore, maxScore);
+
+        await fetch('/api/diagnostic/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...getClientAnalyticsContext(),
+            diagnosticId: diagnostic.id,
+            attemptId,
+            mode,
+            totalScore,
+            maxScore,
+            level: alertLevel.level,
+            durationMs: attemptStartedAt
+              ? Date.now() - new Date(attemptStartedAt).getTime()
+              : undefined,
+            answers,
+            categoryScores
+          })
+        });
+      } catch (error) {
+        console.error('Failed to submit diagnostic', error);
+      }
+    };
+    submitResults();
+  }, [
+    answers,
+    attemptId,
+    attemptStartedAt,
+    calculateCategoryScores,
+    calculateTotalScore,
+    diagnostic,
+    mode,
+    showResults
+  ]);
+
+  useEffect(() => {
+    if (
+      !diagnostic ||
+      diagnostic.id === DIAGNOSTIC_FALLBACK_ID ||
+      !attemptId ||
+      !isStarted ||
+      showResults ||
+      totalQuestions === 0
+    ) {
+      return;
+    }
+
+    const percentage = (answeredQuestions / totalQuestions) * 100;
+    const milestone = [75, 50, 25].find(
+      (value) => percentage >= value && !trackedMilestonesRef.current.has(value)
+    );
+    if (!milestone) return;
+    trackedMilestonesRef.current.add(milestone);
+
+    fetch('/api/diagnostic/attempt', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...getClientAnalyticsContext(),
+        attemptId,
+        diagnosticId: diagnostic.id,
+        answersCount: answeredQuestions,
+        milestone
+      })
+    }).catch(() => undefined);
+  }, [answeredQuestions, attemptId, diagnostic, isStarted, showResults, totalQuestions]);
+
+  if (isDiagnosticLoading) {
+    return (
+      <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-10">
+        <div className="glass-card w-full max-w-md p-7 text-center">
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">Chargement</h1>
+          <p className="text-slate-600">Préparation du diagnostic en cours.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const handleAnswer = (questionId: string, points: number) => {
+    if (!currentCategory) return;
     setAnswers(prev => ({ ...prev, [questionId]: points }));
     
     // Auto-advance to next question after a short delay
@@ -197,21 +608,35 @@ export default function DiagnosticPage() {
 
   const handleRestart = () => {
     clearSavedProgress();
+    setSelectedDiagnosticId(null);
+    setDiagnostic(null);
     setMode(null);
     setCurrentCategoryIndex(0);
     setCurrentQuestionIndex(0);
     setAnswers({});
     setShowResults(false);
     setIsStarted(false);
+    setAttemptId(null);
+    setAttemptStartedAt(null);
+    trackedMilestonesRef.current = new Set();
+    hasSubmittedRef.current = false;
   };
 
   const canGoBack = currentCategoryIndex > 0 || currentQuestionIndex > 0;
 
   // Resume Modal
   if (showResumeModal && savedProgress) {
+    // Calculate total questions from saved diagnostic
+    const savedDiag = savedProgress.diagnosticId === DIAGNOSTIC_FALLBACK_ID
+      ? fallbackDiagnostic
+      : diagnosticList.find(d => d.id === savedProgress.diagnosticId);
+    const savedTotalQuestions = savedDiag
+      ? savedDiag.categories.reduce((acc, cat) => acc + cat.questions.length, 0)
+      : Object.keys(savedProgress.answers).length;
+
     return (
       <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-8">
-        <motion.div 
+        <motion.div
           className="max-w-lg w-full"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -245,7 +670,7 @@ export default function DiagnosticPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500 text-sm">Progression</span>
                   <span className="text-slate-900 font-medium text-sm">
-                    {Object.keys(savedProgress.answers).length} / {totalQuestions} questions
+                    {Object.keys(savedProgress.answers).length} / {savedTotalQuestions} questions
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -256,9 +681,9 @@ export default function DiagnosticPage() {
                 </div>
                 <div className="pt-3">
                   <div className="progress-bar">
-                    <div 
+                    <div
                       className="progress-fill"
-                      style={{ width: `${(Object.keys(savedProgress.answers).length / totalQuestions) * 100}%` }}
+                      style={{ width: `${(Object.keys(savedProgress.answers).length / savedTotalQuestions) * 100}%` }}
                     />
                   </div>
                 </div>
@@ -273,7 +698,7 @@ export default function DiagnosticPage() {
                 whileTap={{ scale: 0.98 }}
               >
                 <PlayCircle className="w-5 h-5" />
-                Reprendre où j'en étais
+                Reprendre où j’en étais
               </motion.button>
               
               <motion.button
@@ -296,26 +721,7 @@ export default function DiagnosticPage() {
     );
   }
 
-  if (!currentCategory || !currentQuestion || !CurrentCategoryIcon) {
-    return (
-      <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-10">
-        <div className="glass-card w-full max-w-xl p-7 md:p-10 text-center">
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">
-            Diagnostic indisponible
-          </h1>
-          <p className="text-slate-600 mb-6">
-            Le contenu du diagnostic a changé ou les données locales sont corrompues.
-            Vous pouvez recommencer pour repartir sur une base saine.
-          </p>
-          <button className="glass-button" onClick={handleRestart}>
-            Recommencer le diagnostic
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Mode Selection Screen
+  // Mode Selection Screen - show first before any question checks
   if (!mode) {
     return (
       <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-8">
@@ -355,7 +761,7 @@ export default function DiagnosticPage() {
                 Pour moi-même
               </h3>
               <p className="text-slate-600 text-sm">
-                J'évalue ma propre situation relationnelle de manière confidentielle.
+                J’évalue ma propre situation relationnelle de manière confidentielle.
               </p>
             </motion.button>
 
@@ -369,10 +775,10 @@ export default function DiagnosticPage() {
                 <Users className="w-8 h-8 text-slate-600 group-hover:text-[#eb5f2a] transition-colors" />
               </div>
               <h3 className="text-xl font-semibold text-slate-900 mb-2 group-hover:text-[#eb5f2a] transition-colors">
-                Pour quelqu'un d'autre
+                Pour quelqu’un d’autre
               </h3>
               <p className="text-slate-600 text-sm">
-                J'aide un proche (ami, famille, collègue) à évaluer sa situation.
+                J’aide un proche (ami, famille, collègue) à évaluer sa situation.
               </p>
             </motion.button>
           </div>
@@ -382,8 +788,8 @@ export default function DiagnosticPage() {
               <Shield className="w-5 h-5 text-[#eb5f2a] mt-0.5 flex-shrink-0" />
               <div>
                 <p className="text-slate-700 text-sm">
-                  <strong className="text-[#eb5f2a]">100% confidentiel</strong> - Aucune donnée personnelle n'est collectée. 
-                  Vous pouvez fermer cette page à tout moment.
+                  <strong className="text-[#eb5f2a]">100% confidentiel</strong> - Aucune identité n’est demandée.
+                  Seules des statistiques anonymes permettent d’améliorer le service.
                 </p>
               </div>
             </div>
@@ -393,11 +799,109 @@ export default function DiagnosticPage() {
     );
   }
 
-  // Instructions Screen
-  if (!isStarted) {
+  // Diagnostic Selection Screen - After mode selection
+  if (mode && !selectedDiagnosticId) {
+    const availableDiagnostics = diagnosticList.length > 0 ? diagnosticList : [
+      {
+        id: DIAGNOSTIC_FALLBACK_ID,
+        title: fallbackDiagnostic.title,
+        description: fallbackDiagnostic.description || 'Évaluez votre relation et identifiez les signes de violence.',
+        totalQuestions: fallbackDiagnostic.categories.reduce((acc, cat) => acc + cat.questions.length, 0),
+        totalCategories: fallbackDiagnostic.categories.length,
+        categories: fallbackDiagnostic.categories
+      }
+    ];
+
     return (
       <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-8">
-        <motion.div 
+        <motion.div
+          className="max-w-3xl w-full"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="text-center mb-10">
+            <div className="category-badge mb-4 inline-flex">
+              {mode === 'self' ? <User className="w-4 h-4" /> : <Users className="w-4 h-4" />}
+              {mode === 'self' ? 'Mode personnel' : 'Mode tiers'}
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+              Choisissez votre <span className="gradient-text">diagnostic</span>
+            </h1>
+            <p className="text-slate-600 max-w-md mx-auto">
+              Sélectionnez le diagnostic que vous souhaitez réaliser.
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            {availableDiagnostics.map((diag, index) => (
+              <motion.button
+                key={diag.id}
+                className="glass-card p-7 w-full text-left hover:border-[#eb5f2a]/50 transition-all group"
+                onClick={() => setSelectedDiagnosticId(diag.id)}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+              >
+                <div className="flex items-start gap-5">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#eb5f2a]/20 to-[#eb5f2a]/10 flex items-center justify-center flex-shrink-0 group-hover:from-[#eb5f2a]/30 group-hover:to-[#eb5f2a]/20 transition-all">
+                    <FileText className="w-7 h-7 text-[#eb5f2a]" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold text-slate-900 mb-2 group-hover:text-[#eb5f2a] transition-colors">
+                      {diag.title}
+                    </h3>
+                    {diag.description && (
+                      <p className="text-slate-600 text-sm mb-4 line-clamp-2">
+                        {diag.description}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-4 text-sm text-slate-500">
+                      <span className="flex items-center gap-1.5">
+                        <MessageCircle className="w-4 h-4" />
+                        {diag.totalQuestions} questions
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <Shield className="w-4 h-4" />
+                        {diag.totalCategories} catégories
+                      </span>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-[#eb5f2a] group-hover:translate-x-1 transition-all flex-shrink-0 mt-2" />
+                </div>
+              </motion.button>
+            ))}
+          </div>
+
+          <div className="mt-10 flex justify-center">
+            <motion.button
+              className="glass-button-outline flex items-center gap-2"
+              onClick={() => setMode(null)}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <ArrowLeft className="w-5 h-5" />
+              Changer de mode
+            </motion.button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // Instructions Screen
+  if (!isStarted && diagnostic) {
+    const instructionsTotalQuestions = diagnostic.categories.reduce(
+      (acc, cat) => acc + cat.questions.length,
+      0
+    );
+    const instructionsTotalCategories = diagnostic.categories.length;
+    const estimatedMinutes = Math.max(5, Math.ceil(instructionsTotalQuestions / 4));
+
+    return (
+      <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-8">
+        <motion.div
           className="max-w-2xl w-full"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -412,7 +916,7 @@ export default function DiagnosticPage() {
                 Avant de commencer
               </h1>
               <p className="text-slate-600">
-                {mode === 'self' 
+                {mode === 'self'
                   ? 'Répondez honnêtement aux questions suivantes en pensant à votre relation actuelle.'
                   : 'Répondez aux questions en pensant à la situation de la personne que vous souhaitez aider.'
                 }
@@ -422,11 +926,11 @@ export default function DiagnosticPage() {
             <div className="space-y-5 mb-10">
               <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50">
                 <div className="w-10 h-10 rounded-lg bg-[#eb5f2a]/20 flex items-center justify-center flex-shrink-0">
-                  <span className="text-[#eb5f2a] font-bold">38</span>
+                  <span className="text-[#eb5f2a] font-bold">{instructionsTotalQuestions}</span>
                 </div>
                 <div>
-                  <h4 className="text-slate-900 font-medium">38 questions</h4>
-                  <p className="text-slate-500 text-sm">Réparties en 6 catégories thématiques</p>
+                  <h4 className="text-slate-900 font-medium">{instructionsTotalQuestions} questions</h4>
+                  <p className="text-slate-500 text-sm">Réparties en {instructionsTotalCategories} catégories thématiques</p>
                 </div>
               </div>
 
@@ -435,7 +939,7 @@ export default function DiagnosticPage() {
                   <CheckCircle className="w-5 h-5 text-[#eb5f2a]" />
                 </div>
                 <div>
-                  <h4 className="text-slate-900 font-medium">Environ 10 minutes</h4>
+                  <h4 className="text-slate-900 font-medium">Environ {estimatedMinutes} minutes</h4>
                   <p className="text-slate-500 text-sm">Prenez le temps de bien réfléchir à chaque question</p>
                 </div>
               </div>
@@ -446,7 +950,7 @@ export default function DiagnosticPage() {
                 </div>
                 <div>
                   <h4 className="text-slate-900 font-medium">Totalement anonyme</h4>
-                  <p className="text-slate-500 text-sm">Aucune donnée n'est enregistrée</p>
+                  <p className="text-slate-500 text-sm">Aucune identité n’est demandée</p>
                 </div>
               </div>
             </div>
@@ -454,7 +958,7 @@ export default function DiagnosticPage() {
             <div className="flex flex-col sm:flex-row gap-6">
               <motion.button
                 className="glass-button flex-1 flex items-center justify-center gap-2"
-                onClick={() => setIsStarted(true)}
+                onClick={handleBeginDiagnostic}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
@@ -477,10 +981,31 @@ export default function DiagnosticPage() {
     );
   }
 
+  // Error check - only when in questionnaire mode
+  if (!currentCategory || !currentQuestion || !CurrentCategoryIcon) {
+    return (
+      <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-10">
+        <div className="glass-card w-full max-w-xl p-7 md:p-10 text-center">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">
+            Diagnostic indisponible
+          </h1>
+          <p className="text-slate-600 mb-6">
+            Le contenu du diagnostic a changé ou les données locales sont corrompues.
+            Vous pouvez recommencer pour repartir sur une base saine.
+          </p>
+          <button className="glass-button" onClick={handleRestart}>
+            Recommencer le diagnostic
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Results Screen
-  if (showResults) {
+  if (showResults && diagnostic) {
     const totalScore = calculateTotalScore();
-    const alertLevel = getAlertLevel(totalScore);
+    const maxScore = getDiagnosticMaxScore(diagnostic);
+    const alertLevel = getAlertLevelForScore(totalScore, maxScore);
     const categoryScores = calculateCategoryScores();
 
     return (
@@ -515,7 +1040,7 @@ export default function DiagnosticPage() {
                   
                   <div className="text-6xl font-bold mb-4" style={{ color: alertLevel.color }}>
                     {totalScore}
-                    <span className="text-2xl text-slate-400">/120</span>
+                    <span className="text-2xl text-slate-400">/{maxScore}</span>
                   </div>
 
                   <p className="text-slate-600 max-w-xl mx-auto leading-relaxed">
@@ -530,9 +1055,12 @@ export default function DiagnosticPage() {
                 <div className="space-y-5">
                   {categories.map((category, index) => {
                     const catScore = categoryScores.find(cs => cs.categoryId === category.id);
-                    const percentage = catScore ? (catScore.score / catScore.maxScore) * 100 : 0;
+                    const percentage =
+                      catScore && catScore.maxScore
+                        ? (catScore.score / catScore.maxScore) * 100
+                        : 0;
                     const levelColor = catScore?.level === 'safe' ? '#64748b' : catScore?.level === 'warning' ? '#eb5f2a' : '#ef4444';
-                    const CategoryIcon = category.icon;
+                    const CategoryIcon = resolveCategoryIcon(category);
                     
                     return (
                       <motion.div
@@ -568,6 +1096,29 @@ export default function DiagnosticPage() {
                 </div>
               </div>
 
+              <DiagnosticResultShare
+                diagnosticId={diagnostic.id}
+                attemptId={attemptId}
+                diagnosticTitle={diagnostic.title}
+                level={alertLevel.level}
+                title={alertLevel.title}
+                subtitle={alertLevel.subtitle}
+                message={alertLevel.message}
+                totalScore={totalScore}
+                maxScore={maxScore}
+                categories={categories.map((category) => {
+                  const categoryScore = categoryScores.find(
+                    (score) => score.categoryId === category.id
+                  );
+                  return {
+                    name: category.name,
+                    score: categoryScore?.score || 0,
+                    maxScore: categoryScore?.maxScore || 0,
+                    level: categoryScore?.level || 'safe'
+                  };
+                })}
+              />
+
               {/* Emergency Contact for Danger Level */}
               {alertLevel.level === 'danger' && (
                 <motion.div
@@ -582,7 +1133,7 @@ export default function DiagnosticPage() {
                         <Phone className="w-7 h-7 text-red-400" />
                       </div>
                       <div>
-                        <h3 className="text-xl font-bold text-slate-900">Besoin d'aide urgente ?</h3>
+                        <h3 className="text-xl font-bold text-slate-900">Besoin d’aide urgente ?</h3>
                         <p className="text-slate-600">Des professionnels peuvent vous aider maintenant</p>
                       </div>
                     </div>
@@ -607,10 +1158,10 @@ export default function DiagnosticPage() {
 
               {/* Resources Link */}
               <div className="glass-card p-5 md:p-8">
-                <h2 className="text-xl font-bold text-slate-900 mb-4">Ressources d'aide</h2>
+                <h2 className="text-xl font-bold text-slate-900 mb-4">Ressources d’aide</h2>
                 <p className="text-slate-600 mb-8">
                   Quelle que soit votre situation, des structures existent pour vous accompagner. 
-                  N'hésitez pas à les contacter.
+                  N’hésitez pas à les contacter.
                 </p>
                 <Link
                   href="/ressources"
@@ -639,7 +1190,7 @@ export default function DiagnosticPage() {
                     whileTap={{ scale: 0.98 }}
                   >
                     <Home className="w-5 h-5" />
-                    Retour à l'accueil
+                    Retour à l’accueil
                   </motion.button>
                 </Link>
               </div>

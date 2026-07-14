@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { 
@@ -20,8 +20,9 @@ import {
 } from 'lucide-react';
 
 interface Resource {
+  id?: string;
   name: string;
-  type: 'Association' | 'Institution' | 'Urgence' | 'Ligne d\'écoute';
+  type: string;
   contact: string;
   description?: string;
   address?: string;
@@ -29,17 +30,58 @@ interface Resource {
 }
 
 interface Country {
+  id?: string;
   name: string;
   code: string;
-  emergencyNumber: string;
+  emergencyNumber: string | null;
   resources: Resource[];
 }
 
-export default function ResourcesPage() {
-  const [selectedCountry, setSelectedCountry] = useState<string>('Niger');
-  const [searchQuery, setSearchQuery] = useState('');
+const getCountryIdentity = (country: Country) =>
+  (country.name || country.code).trim().toLocaleLowerCase('fr-FR');
 
-  const countries: Country[] = [
+const getCountryRenderKey = (country: Country) =>
+  country.id || country.code || getCountryIdentity(country);
+
+const getResourceIdentity = (resource: Resource) =>
+  resource.id ||
+  `${resource.name.trim().toLocaleLowerCase('fr-FR')}::${resource.contact.trim().toLocaleLowerCase('fr-FR')}`;
+
+const normalizeCountries = (sourceCountries: Country[]) => {
+  const countryMap = new Map<string, Country>();
+
+  sourceCountries.forEach((country) => {
+    const countryKey = getCountryIdentity(country);
+    if (!countryKey) return;
+
+    const existing = countryMap.get(countryKey);
+    if (!existing) {
+      countryMap.set(countryKey, {
+        ...country,
+        resources: country.resources ?? []
+      });
+      return;
+    }
+
+    const resourceMap = new Map<string, Resource>();
+    [...existing.resources, ...(country.resources ?? [])].forEach((resource) => {
+      resourceMap.set(getResourceIdentity(resource), resource);
+    });
+
+    countryMap.set(countryKey, {
+      ...existing,
+      id: existing.id || country.id,
+      code: existing.code || country.code,
+      emergencyNumber: existing.emergencyNumber || country.emergencyNumber,
+      resources: Array.from(resourceMap.values())
+    });
+  });
+
+  return Array.from(countryMap.values());
+};
+
+export default function ResourcesPage() {
+  const fallbackCountries: Country[] = [
     {
       name: "Niger",
       code: "NE",
@@ -286,6 +328,33 @@ export default function ResourcesPage() {
     }
   ];
 
+  const [countries, setCountries] = useState<Country[]>(() => normalizeCountries(fallbackCountries));
+  const [selectedCountry, setSelectedCountry] = useState<string>(
+    fallbackCountries[0]?.name || ''
+  );
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    const fetchResources = async () => {
+      try {
+        const response = await fetch('/api/resources');
+        const data = await response.json();
+        if (response.ok && data?.countries?.length) {
+          const nextCountries = normalizeCountries(data.countries);
+          setCountries(nextCountries);
+          setSelectedCountry((currentCountry) =>
+            nextCountries.find((country) => country.name === currentCountry)
+              ? currentCountry
+              : nextCountries[0]?.name || ''
+          );
+        }
+      } catch (error) {
+        console.error('Failed to load resources', error);
+      }
+    };
+    fetchResources();
+  }, []);
+
   const selectedCountryData = countries.find(c => c.name === selectedCountry);
 
   const filteredResources = selectedCountryData?.resources.filter(resource =>
@@ -294,15 +363,18 @@ export default function ResourcesPage() {
     resource.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const normalizeType = (type: string) => type.toLowerCase().replace(/[_-]/g, ' ');
+
   const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'Association':
+    switch (normalizeType(type)) {
+      case 'association':
         return Users;
-      case 'Institution':
+      case 'institution':
         return Building;
-      case 'Urgence':
+      case 'urgence':
         return AlertTriangle;
-      case "Ligne d'écoute":
+      case "ligne d'écoute":
+      case 'ligne ecoute':
         return Phone;
       default:
         return Heart;
@@ -310,17 +382,34 @@ export default function ResourcesPage() {
   };
 
   const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'Association':
+    switch (normalizeType(type)) {
+      case 'association':
         return 'text-[#eb5f2a] bg-[#eb5f2a]/10';
-      case 'Institution':
+      case 'institution':
         return 'text-slate-600 bg-slate-100';
-      case 'Urgence':
+      case 'urgence':
         return 'text-red-600 bg-red-100';
-      case "Ligne d'écoute":
+      case "ligne d'écoute":
+      case 'ligne ecoute':
         return 'text-orange-600 bg-orange-100';
       default:
         return 'text-slate-600 bg-slate-100';
+    }
+  };
+
+  const getTypeLabel = (type: string) => {
+    switch (normalizeType(type)) {
+      case 'association':
+        return 'Association';
+      case 'institution':
+        return 'Institution';
+      case 'urgence':
+        return 'Urgence';
+      case "ligne d'écoute":
+      case 'ligne ecoute':
+        return "Ligne d'écoute";
+      default:
+        return type;
     }
   };
 
@@ -341,15 +430,15 @@ export default function ResourcesPage() {
               transition={{ delay: 0.2 }}
             >
               <Shield className="w-4 h-4 text-[#eb5f2a]" />
-              <span className="text-[#eb5f2a] text-sm font-medium">Structures d'aide</span>
+              <span className="text-[#eb5f2a] text-sm font-medium">Structures d&apos;aide</span>
             </motion.div>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight mb-6">
-              Ressources <span className="gradient-text">d'aide</span>
+              Ressources <span className="gradient-text">d&apos;aide</span>
             </h1>
 
             <p className="text-lg text-slate-600 leading-relaxed">
-              Trouvez les structures d'aide disponibles dans votre pays. Ces organisations 
+              Trouvez les structures d&apos;aide disponibles dans votre pays. Ces organisations
               peuvent vous accompagner en toute confidentialité.
             </p>
           </motion.div>
@@ -403,7 +492,7 @@ export default function ResourcesPage() {
                   className="glass-input w-full appearance-none cursor-pointer pr-10"
                 >
                   {countries.map((country) => (
-                    <option key={country.name} value={country.name} className="bg-white text-slate-900">
+                    <option key={getCountryRenderKey(country)} value={country.name} className="bg-white text-slate-900">
                       {country.code} — {country.name}
                     </option>
                   ))}
@@ -438,7 +527,7 @@ export default function ResourcesPage() {
               const isSelected = selectedCountry === country.name;
               return (
                 <button
-                  key={country.name}
+                  key={getCountryRenderKey(country)}
                   onClick={() => setSelectedCountry(country.name)}
                   className={`flex items-center gap-3 px-4 py-2 rounded-xl whitespace-nowrap transition-all border ${
                     isSelected
@@ -489,7 +578,7 @@ export default function ResourcesPage() {
                   
                   return (
                     <motion.div
-                      key={index}
+                      key={getResourceIdentity(resource)}
                       className="glass-card p-6"
                       initial={{ opacity: 0, y: 30 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -500,7 +589,7 @@ export default function ResourcesPage() {
                           <TypeIcon className={`w-5 h-5 ${typeColor.split(' ')[0]}`} />
                         </div>
                         <span className={`text-xs font-medium px-2 py-1 rounded-full ${typeColor}`}>
-                          {resource.type}
+                          {getTypeLabel(resource.type)}
                         </span>
                       </div>
 
@@ -512,11 +601,14 @@ export default function ResourcesPage() {
 
                       <div className="space-y-2 pt-4 border-t border-slate-200">
                         <a
-                          href={resource.type === 'Urgence' || resource.type === "Ligne d'écoute" 
-                            ? `tel:${resource.contact}` 
-                            : resource.contact.includes('@') 
-                              ? `mailto:${resource.contact}` 
-                              : `tel:${resource.contact}`
+                          href={
+                            normalizeType(resource.type) === 'urgence' ||
+                            normalizeType(resource.type) === "ligne d'écoute" ||
+                            normalizeType(resource.type) === 'ligne ecoute'
+                              ? `tel:${resource.contact}`
+                              : resource.contact.includes('@')
+                                ? `mailto:${resource.contact}`
+                                : `tel:${resource.contact}`
                           }
                           className="flex items-center gap-2 text-[#eb5f2a] hover:text-[#f4855c] transition-colors"
                         >
@@ -577,7 +669,7 @@ export default function ResourcesPage() {
               </div>
               <h3 className="text-xl font-semibold text-slate-900 mb-4">Confidentialité garantie</h3>
               <p className="text-slate-600 leading-relaxed">
-                Toutes les structures listées s'engagent à respecter votre confidentialité. 
+                Toutes les structures listées s&apos;engagent à respecter votre confidentialité.
                 Vous pouvez les contacter en toute sécurité. Votre démarche restera confidentielle.
               </p>
             </motion.div>
@@ -613,10 +705,10 @@ export default function ResourcesPage() {
             viewport={{ once: true }}
           >
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-              Vous n'avez pas encore fait le <span className="gradient-text">diagnostic</span> ?
+              Vous n&apos;avez pas encore fait le <span className="gradient-text">diagnostic</span> ?
             </h2>
             <p className="text-slate-600 max-w-xl mx-auto mb-8">
-              Notre outil d'autodiagnostic peut vous aider à évaluer votre situation 
+              Notre outil d&apos;autodiagnostic peut vous aider à évaluer votre situation
               et à identifier les ressources adaptées à vos besoins.
             </p>
             <Link href="/diagnostic" className="glass-button inline-flex items-center gap-2">

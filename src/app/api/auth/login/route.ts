@@ -5,6 +5,7 @@ import {
   getSessionCookieOptions,
   verifyCredentials
 } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
 type LoginPayload = {
   email?: string;
@@ -40,7 +41,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const token = createSessionToken(result.email, result.role);
+    await prisma.user.update({
+      where: { id: result.id },
+      data: { lastLoginAt: new Date() }
+    });
+
+    const token = createSessionToken(result);
     const response = NextResponse.json({ ok: true, role: result.role });
     response.cookies.set(
       getSessionCookieName(),

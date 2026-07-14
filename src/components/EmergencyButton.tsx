@@ -35,7 +35,7 @@ export default function EmergencyButton() {
   ];
 
   return (
-    <>
+    <div id="emergency-button">
       {/* Emergency Button */}
       <motion.button
         className="emergency-button pulse-glow"
@@ -78,7 +78,7 @@ export default function EmergencyButton() {
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-slate-900">Urgence</h3>
-                      <p className="text-slate-500 text-sm">Numéros d'aide immédiate</p>
+                      <p className="text-slate-500 text-sm">Numéros d&apos;aide immédiate</p>
                     </div>
                   </div>
                   <button
@@ -133,7 +133,7 @@ export default function EmergencyButton() {
                     onClick={() => setIsOpen(false)}
                   >
                     <MessageCircle className="w-5 h-5" />
-                    <span>Voir toutes les ressources d'aide</span>
+                    <span>Voir toutes les ressources d&apos;aide</span>
                   </a>
                 </div>
               </div>
@@ -141,6 +141,6 @@ export default function EmergencyButton() {
           </>
         )}
       </AnimatePresence>
-    </>
+    </div>
   );
 }

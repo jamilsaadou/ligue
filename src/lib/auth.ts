@@ -1,16 +1,16 @@
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
-import type { RowDataPacket } from 'mysql2';
-import { pool } from './db';
 import { shouldUseSecureCookies } from './cookie-flags';
+import { prisma } from './prisma';
 
-export type UserRole = 'admin' | 'user';
+export type UserRole = 'super_admin' | 'admin' | 'user';
 
 const SESSION_COOKIE = 'av_session';
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
 
 type SessionPayload = {
+  id: string;
   email: string;
   role: UserRole;
   exp: number;
@@ -45,10 +45,15 @@ const sign = (value: string) => {
   );
 };
 
-export const createSessionToken = (email: string, role: UserRole) => {
+export const createSessionToken = (user: {
+  id: string;
+  email: string;
+  role: UserRole;
+}) => {
   const payload: SessionPayload = {
-    email,
-    role,
+    id: user.id,
+    email: user.email,
+    role: user.role,
     exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS
   };
   const body = toBase64Url(JSON.stringify(payload));
@@ -73,7 +78,22 @@ export const verifySessionToken = (token: string | undefined | null) => {
 export const getSession = async () => {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
-  return verifySessionToken(token);
+  const session = verifySessionToken(token);
+  if (!session) return null;
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.id },
+    select: { email: true, role: true, isActive: true, adminModules: true }
+  });
+
+  if (!user?.isActive) return null;
+
+  return {
+    ...session,
+    email: user.email,
+    role: user.role,
+    adminModules: user.adminModules
+  };
 };
 
 export const getSessionCookieName = () => SESSION_COOKIE;
@@ -86,14 +106,8 @@ export const getSessionCookieOptions = () => ({
   maxAge: SESSION_TTL_SECONDS
 });
 
-type UserRow = RowDataPacket & {
-  email: string;
-  password_hash?: string | null;
-  password?: string | null;
-  role?: string | null;
-};
-
 type AuthResult = {
+  id: string;
   email: string;
   role: UserRole;
 };
@@ -119,24 +133,33 @@ export const verifyCredentials = async (
   if (adminEmail && adminPassword && normalizedEmail === adminEmail) {
     const validAdminPassword = await matchPassword(password, adminPassword);
     if (validAdminPassword) {
-      return { email: normalizedEmail, role: 'admin' as const };
+      const passwordHash = isBcryptHash(adminPassword)
+        ? adminPassword
+        : await bcrypt.hash(adminPassword, 10);
+      const admin = await prisma.user.upsert({
+        where: { email: normalizedEmail },
+        update: {
+          role: 'super_admin',
+          passwordHash,
+          isActive: true
+        },
+        create: {
+          email: normalizedEmail,
+          passwordHash,
+          role: 'super_admin'
+        }
+      });
+      return { id: admin.id, email: admin.email, role: admin.role };
     }
   }
 
-  const [rows] = await pool.query<UserRow[]>(
-    'SELECT email, password_hash, password, role FROM users WHERE email = ? LIMIT 1',
-    [normalizedEmail]
-  );
+  const user = await prisma.user.findUnique({
+    where: { email: normalizedEmail }
+  });
+  if (!user?.isActive) return null;
 
-  const user = rows[0];
-  if (!user) return null;
-
-  const storedPassword = user.password_hash || user.password;
-  if (!storedPassword) return null;
-
-  const valid = await matchPassword(password, storedPassword);
+  const valid = await matchPassword(password, user.passwordHash);
   if (!valid) return null;
 
-  const role: UserRole = user.role === 'admin' ? 'admin' : 'user';
-  return { email: user.email, role };
+  return { id: user.id, email: user.email, role: user.role };
 };

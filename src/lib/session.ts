@@ -1,8 +1,9 @@
 import { shouldUseSecureCookies } from './cookie-flags';
 
-export type UserRole = 'admin' | 'user';
+export type UserRole = 'super_admin' | 'admin' | 'user';
 
 type SessionPayload = {
+  id: string;
   email: string;
   role: UserRole;
   exp: number;
@@ -24,19 +25,29 @@ const getSessionSecret = () => {
   return secret;
 };
 
+const btoaSafe = (input: string) => {
+  if (typeof btoa !== 'undefined') return btoa(input);
+  return Buffer.from(input, 'binary').toString('base64');
+};
+
+const atobSafe = (input: string) => {
+  if (typeof atob !== 'undefined') return atob(input);
+  return Buffer.from(input, 'base64').toString('binary');
+};
+
 const toBase64Url = (input: Uint8Array) => {
   let binary = '';
   for (let i = 0; i < input.length; i += 1) {
     binary += String.fromCharCode(input[i]);
   }
-  return btoa(binary).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  return btoaSafe(binary).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
 };
 
 const fromBase64Url = (input: string) => {
   const padded = input.replace(/-/g, '+').replace(/_/g, '/');
   const padLength = padded.length % 4 ? 4 - (padded.length % 4) : 0;
   const normalized = padded + '='.repeat(padLength);
-  const binary = atob(normalized);
+  const binary = atobSafe(normalized);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i += 1) {
     bytes[i] = binary.charCodeAt(i);
@@ -188,10 +199,15 @@ const sign = (value: string) => {
   return toBase64Url(signature);
 };
 
-export const createSessionToken = (email: string, role: UserRole) => {
+export const createSessionToken = (user: {
+  id: string;
+  email: string;
+  role: UserRole;
+}) => {
   const payload: SessionPayload = {
-    email,
-    role,
+    id: user.id,
+    email: user.email,
+    role: user.role,
     exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS
   };
   const body = toBase64Url(encoder.encode(JSON.stringify(payload)));

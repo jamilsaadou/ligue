@@ -33,12 +33,12 @@ export default function ConnexionPage() {
         return;
       }
 
-      if (data?.role === 'admin') {
-        router.push('/admin/statistiques');
+      if (data?.role === 'admin' || data?.role === 'super_admin') {
+        router.push('/admin');
         return;
       }
 
-      router.push('/diagnostic');
+      router.push('/compte');
     } catch (err) {
       console.error(err);
       setError('Impossible de se connecter. Réessayez.');
@@ -121,10 +121,15 @@ export default function ConnexionPage() {
           </form>
 
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500">
-            <span>Vous n'avez pas de compte ? Contactez un administrateur.</span>
-            <Link href="/" className="text-[#eb5f2a] font-medium hover:underline">
-              Retour à l'accueil
-            </Link>
+            <span>Vous n’avez pas de compte ?</span>
+            <div className="flex items-center gap-4">
+              <Link href="/inscription" className="text-[#eb5f2a] font-medium hover:underline">
+                Créer un compte
+              </Link>
+              <Link href="/" className="text-[#eb5f2a] font-medium hover:underline">
+                Retour à l’accueil
+              </Link>
+            </div>
           </div>
         </div>
       </motion.div>
