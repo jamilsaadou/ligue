@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Lock, Mail, ArrowRight, ShieldCheck } from 'lucide-react';
+import { useAuth } from '@/components/AuthProvider';
 
 export default function ConnexionPage() {
   const router = useRouter();
+  const { refresh } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -32,6 +34,9 @@ export default function ConnexionPage() {
         setIsLoading(false);
         return;
       }
+
+      // Met à jour la barre de navigation immédiatement.
+      await refresh();
 
       if (data?.role === 'admin' || data?.role === 'super_admin') {
         router.push('/admin');

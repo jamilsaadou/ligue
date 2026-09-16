@@ -13,8 +13,7 @@ import {
   ArrowRight,
   CheckCircle,
   Mail,
-  MapPin,
-  Sparkles
+  MapPin
 } from 'lucide-react';
 
 export default function AboutPage() {
@@ -103,7 +102,7 @@ export default function AboutPage() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
             >
-              <Sparkles className="w-4 h-4 text-[#eb5f2a]" />
+              <Users className="w-4 h-4 shrink-0 text-[#eb5f2a]" aria-hidden="true" />
               <span className="text-[#eb5f2a] text-sm font-medium">À propos de nous</span>
             </motion.div>
 
@@ -212,7 +211,7 @@ export default function AboutPage() {
             viewport={{ once: true }}
           >
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#eb5f2a]/10 text-[#eb5f2a] text-sm font-medium mb-4">
-              <Sparkles className="w-4 h-4" />
+              <Users className="w-4 h-4 shrink-0" aria-hidden="true" />
               Nos valeurs
             </div>
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">

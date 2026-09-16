@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import EmergencyButton from "@/components/EmergencyButton";
 import TrackingProvider from "@/components/TrackingProvider";
+import { AuthProvider } from "@/components/AuthProvider";
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -37,13 +38,15 @@ export default function RootLayout({
         <div className="bg-decoration w-80 h-80 bg-[#e5e7eb] bottom-0 right-0 translate-x-1/2 translate-y-1/2" />
         <div className="bg-decoration w-64 h-64 bg-[#f2b79f] top-1/2 right-1/4" />
         
-        <Header />
-        <TrackingProvider />
-        <main className="pt-[80px] min-h-screen">
-          {children}
-        </main>
-        <Footer />
-        <EmergencyButton />
+        <AuthProvider>
+          <Header />
+          <TrackingProvider />
+          <main className="pt-[80px] min-h-screen">
+            {children}
+          </main>
+          <Footer />
+          <EmergencyButton />
+        </AuthProvider>
       </body>
     </html>
   );

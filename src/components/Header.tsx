@@ -3,53 +3,53 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Heart, Phone, Home, FileText, Users, HelpCircle, LogIn, UserPlus, LayoutDashboard, Settings, LogOut } from 'lucide-react';
 import UserMenu from './UserMenu';
+import { useAuth } from './AuthProvider';
 import { useSiteConfig } from '@/hooks/useSiteConfig';
-
-type UserData = {
-  id: string;
-  email: string;
-  role: 'super_admin' | 'admin' | 'user';
-  name: string | null;
-};
 
 export default function Header() {
   const siteConfig = useSiteConfig();
+  const router = useRouter();
+  const { user, isLoading, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [user, setUser] = useState<UserData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const response = await fetch('/api/auth/session');
-        const data = await response.json();
-        setUser(data.user);
-      } catch (error) {
-        console.error('Session check error:', error);
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    checkSession();
-  }, []);
 
   useEffect(() => {
     document.title = `${siteConfig.siteName} - ${siteConfig.siteTagline}`;
+    // Déduit le type MIME depuis le data URL (ex. image/png, image/svg+xml).
+    const mimeMatch = siteConfig.logoDataUrl?.match(/^data:([^;,]+)[;,]/);
+    const logoType = mimeMatch?.[1] || 'image/png';
+
     if (siteConfig.logoDataUrl) {
-      let favicon = document.querySelector<HTMLLinkElement>('link[data-site-logo]');
-      if (!favicon) {
-        favicon = document.createElement('link');
-        favicon.rel = 'icon';
-        favicon.dataset.siteLogo = 'true';
-        document.head.appendChild(favicon);
+      // Aligne TOUS les liens d'icône (dont le /favicon.ico injecté par Next)
+      // sur le logo du site pour que la favicon suive le logo.
+      const iconLinks = Array.from(
+        document.querySelectorAll<HTMLLinkElement>('link[rel~="icon"], link[rel="apple-touch-icon"]')
+      );
+      let managed = document.querySelector<HTMLLinkElement>('link[data-site-logo]');
+      if (!managed) {
+        managed = document.createElement('link');
+        managed.rel = 'icon';
+        managed.dataset.siteLogo = 'true';
+        document.head.appendChild(managed);
       }
-      favicon.href = siteConfig.logoDataUrl;
+      [...iconLinks, managed].forEach((link) => {
+        link.href = siteConfig.logoDataUrl as string;
+        link.type = logoType;
+      });
     } else {
+      // Pas de logo : on retire notre lien et on rétablit la favicon par défaut.
       document.querySelector<HTMLLinkElement>('link[data-site-logo]')?.remove();
+      document
+        .querySelectorAll<HTMLLinkElement>('link[rel~="icon"]')
+        .forEach((link) => {
+          if (link.href.startsWith('data:')) {
+            link.href = '/favicon.ico';
+            link.removeAttribute('type');
+          }
+        });
     }
   }, [siteConfig.logoDataUrl, siteConfig.siteName, siteConfig.siteTagline]);
 
@@ -64,12 +64,20 @@ export default function Header() {
   const emergencyHref = `tel:${siteConfig.emergencyNumber.replace(/[^\d+]/g, '')}`;
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50">
+    <header
+      className="fixed top-0 left-0 right-0 z-50"
+      onKeyDown={(event) => {
+        if (event.key === 'Escape' && isMenuOpen) {
+          setIsMenuOpen(false);
+          document.querySelector<HTMLButtonElement>('[aria-controls="mobile-navigation"]')?.focus();
+        }
+      }}
+    >
       <div className="glass border-b border-slate-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-3 group">
+            <Link href="/" className="flex min-w-0 items-center gap-3 group" aria-label={`${siteConfig.siteName} — Accueil`}>
               <motion.div
                 className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#eb5f2a] to-[#d14d1a] flex items-center justify-center overflow-hidden flex-shrink-0"
                 whileHover={{ scale: 1.05, rotate: 5 }}
@@ -81,16 +89,16 @@ export default function Header() {
                   <Heart className="w-6 h-6 text-white" />
                 )}
               </motion.div>
-              <div className="hidden sm:block min-w-0 max-w-64">
-                <h1 className="text-xl font-bold text-slate-900 group-hover:text-[#eb5f2a] transition-colors truncate">
+              <div className="min-w-0 max-w-48 sm:max-w-64">
+                <p className="text-sm sm:text-xl font-bold text-slate-900 group-hover:text-[#eb5f2a] transition-colors truncate">
                   {siteConfig.siteName}
-                </h1>
-                <p className="text-xs text-slate-500 truncate">{siteConfig.siteTagline}</p>
+                </p>
+                <p className="hidden sm:block text-xs text-slate-500 truncate">{siteConfig.siteTagline}</p>
               </div>
             </Link>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-1">
+            <nav aria-label="Navigation principale" className="hidden xl:flex shrink-0 items-center gap-1">
               {mainNavLinks.map((link) => (
                 <Link
                   key={link.href}
@@ -104,7 +112,7 @@ export default function Header() {
             </nav>
 
             {/* Right side - Auth or User Menu */}
-            <div className="hidden md:flex items-center gap-3">
+            <div className="hidden xl:flex shrink-0 items-center gap-3">
               {isLoading ? (
                 <div className="w-9 h-9 rounded-full bg-slate-200 animate-pulse" />
               ) : user ? (
@@ -141,7 +149,11 @@ export default function Header() {
 
             {/* Mobile Menu Button */}
             <motion.button
-              className="md:hidden p-2 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors"
+              type="button"
+              aria-label={isMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-navigation"
+              className="xl:hidden shrink-0 p-3 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               whileTap={{ scale: 0.9 }}
             >
@@ -158,9 +170,10 @@ export default function Header() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden glass border-b border-slate-200/80 overflow-hidden"
+            id="mobile-navigation"
+            className="xl:hidden glass border-b border-slate-200/80 max-h-[calc(100dvh-80px)] overflow-y-auto overscroll-contain"
           >
-            <nav className="max-w-7xl mx-auto px-4 py-6 flex flex-col gap-1">
+            <nav aria-label="Navigation mobile" className="max-w-7xl mx-auto px-4 py-6 flex flex-col gap-1">
               {mainNavLinks.map((link, index) => (
                 <motion.div
                   key={link.href}
@@ -189,11 +202,11 @@ export default function Header() {
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#eb5f2a] to-[#d14d1a] flex items-center justify-center text-white text-sm font-semibold">
                         {(user.name || user.email.split('@')[0]).slice(0, 2).toUpperCase()}
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-slate-900">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-slate-900">
                           {user.name || user.email.split('@')[0]}
                         </p>
-                        <p className="text-xs text-slate-500">{user.email}</p>
+                        <p className="break-all text-xs text-slate-500">{user.email}</p>
                       </div>
                     </div>
                     {isAdmin && (
@@ -233,10 +246,9 @@ export default function Header() {
                     >
                       <button
                         onClick={async () => {
-                          await fetch('/api/auth/logout', { method: 'POST' });
-                          setUser(null);
+                          await logout();
                           setIsMenuOpen(false);
-                          window.location.href = '/';
+                          router.push('/');
                         }}
                         className="flex items-center gap-3 w-full px-4 py-3.5 rounded-xl text-red-600 hover:bg-red-50 transition-all font-medium"
                       >

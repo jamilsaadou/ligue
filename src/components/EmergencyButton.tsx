@@ -1,11 +1,24 @@
 'use client';
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
 import { Phone, X, AlertTriangle, Shield, MessageCircle } from 'lucide-react';
 
 export default function EmergencyButton() {
   const [isOpen, setIsOpen] = useState(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const dialog = dialogRef.current;
+    dialog?.showModal();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      dialog?.close();
+    };
+  }, [isOpen]);
 
   const emergencyContacts = [
     { 
@@ -38,6 +51,9 @@ export default function EmergencyButton() {
     <div id="emergency-button">
       {/* Emergency Button */}
       <motion.button
+        type="button"
+        aria-label="Afficher les numéros d’urgence"
+        aria-haspopup="dialog"
         className="emergency-button pulse-glow"
         onClick={() => setIsOpen(true)}
         whileHover={{ scale: 1.1 }}
@@ -50,26 +66,18 @@ export default function EmergencyButton() {
       </motion.button>
 
       {/* Emergency Modal */}
-      <AnimatePresence>
         {isOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1001]"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsOpen(false)}
-            />
-
-            {/* Modal */}
-            <motion.div
-              className="fixed inset-x-4 top-1/2 -translate-y-1/2 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-md z-[1002]"
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            <dialog
+              ref={dialogRef}
+              aria-labelledby="emergency-title"
+              onCancel={() => setIsOpen(false)}
+              onClose={() => setIsOpen(false)}
+              onClick={(event) => {
+                if (event.target === event.currentTarget) setIsOpen(false);
+              }}
+              className="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto overscroll-contain rounded-2xl border border-slate-200 bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-black/60 backdrop:backdrop-blur-sm"
             >
-              <div className="glass-card p-6">
+              <div className="p-5 sm:p-6">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex items-center gap-3">
@@ -77,13 +85,15 @@ export default function EmergencyButton() {
                       <AlertTriangle className="w-6 h-6 text-red-400" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-slate-900">Urgence</h3>
+                      <h2 id="emergency-title" className="text-xl font-bold text-slate-900">Urgence</h2>
                       <p className="text-slate-500 text-sm">Numéros d&apos;aide immédiate</p>
                     </div>
                   </div>
                   <button
+                    type="button"
+                    aria-label="Fermer les numéros d’urgence"
                     onClick={() => setIsOpen(false)}
-                    className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                    className="shrink-0 p-3 rounded-lg hover:bg-slate-100 transition-colors"
                   >
                     <X className="w-5 h-5 text-slate-500" />
                   </button>
@@ -103,11 +113,11 @@ export default function EmergencyButton() {
                     <motion.a
                       key={index}
                       href={`tel:${contact.number}`}
-                      className="flex items-center justify-between p-4 rounded-xl bg-white border border-slate-200 hover:border-[#eb5f2a]/50 transition-all group"
+                      className="flex items-center justify-between gap-3 p-4 rounded-xl bg-white border border-slate-200 hover:border-[#eb5f2a]/50 transition-all group"
                       whileHover={{ x: 5 }}
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-[#eb5f2a]/20 flex items-center justify-center">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <div className="w-10 h-10 shrink-0 rounded-lg bg-[#eb5f2a]/20 flex items-center justify-center">
                           <contact.icon className="w-5 h-5 text-[#eb5f2a]" />
                         </div>
                         <div>
@@ -115,11 +125,11 @@ export default function EmergencyButton() {
                           <p className="text-slate-500 text-sm">{contact.label}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex shrink-0 items-center gap-2">
                         <span className="text-2xl font-bold text-[#eb5f2a] group-hover:text-slate-900 transition-colors">
                           {contact.number}
                         </span>
-                        <Phone className="w-5 h-5 text-slate-400 group-hover:text-[#eb5f2a] transition-colors" />
+                        <Phone className="hidden sm:block w-5 h-5 text-slate-400 group-hover:text-[#eb5f2a] transition-colors" />
                       </div>
                     </motion.a>
                   ))}
@@ -137,10 +147,8 @@ export default function EmergencyButton() {
                   </a>
                 </div>
               </div>
-            </motion.div>
-          </>
+            </dialog>
         )}
-      </AnimatePresence>
     </div>
   );
 }

@@ -47,6 +47,10 @@ model User {
   role         UserRole     @default(user)
   adminModules AdminModule[] @default([])
   name         String?
+  countryCode  String?
+  phone        String?
+  joinReasons  String[]     @default([])
+  onboardedAt  DateTime?
   isActive     Boolean      @default(true)
   lastLoginAt  DateTime?
   createdAt    DateTime     @default(now())

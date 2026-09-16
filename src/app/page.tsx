@@ -1,21 +1,92 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { 
-  ArrowRight, 
-  Shield, 
-  Lock, 
-  Eye, 
-  Users, 
-  Heart, 
+import {
+  ArrowRight,
+  Shield,
+  Lock,
+  Eye,
+  Heart,
   CheckCircle,
   MessageCircle,
-  ChevronRight
+  ChevronRight,
+  ClipboardCheck,
+  FileText,
+  type LucideIcon
 } from 'lucide-react';
-import { categories } from '@/data/questions';
+
+type DiagnosticSummary = {
+  id: string;
+  title: string;
+  description?: string | null;
+  totalQuestions: number;
+  totalCategories: number;
+};
+
+// Représentation par défaut (avant le chargement de la liste réelle) afin
+// d'éviter un écran vide et de rester correct même si l'API est indisponible.
+const FALLBACK_DIAGNOSTICS: DiagnosticSummary[] = [
+  {
+    id: 'violentometre',
+    title: 'Violentomètre',
+    description: "Évaluez les signes de violence dans une relation amoureuse ou intime.",
+    totalQuestions: 38,
+    totalCategories: 6
+  },
+  {
+    id: 'harcelometre',
+    title: 'Harcélomètre',
+    description: "Repérez les comportements de harcèlement, du signal ponctuel au danger.",
+    totalQuestions: 13,
+    totalCategories: 6
+  },
+  {
+    id: 'incestometre',
+    title: 'Incestomètre',
+    description: "Repérez un climat incestuel et les situations qui appellent de l'aide.",
+    totalQuestions: 24,
+    totalCategories: 6
+  }
+];
+
+const pickDiagnosticIcon = (title: string): LucideIcon => {
+  const value = title.toLowerCase();
+  if (value.includes('incest')) return Shield;
+  if (value.includes('harc')) return MessageCircle;
+  if (value.includes('violent')) return Heart;
+  return ClipboardCheck;
+};
 
 export default function Home() {
+  const [diagnostics, setDiagnostics] = useState<DiagnosticSummary[]>(FALLBACK_DIAGNOSTICS);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetch('/api/diagnostic/list')
+      .then((response) => response.json())
+      .then((data) => {
+        if (isMounted && data?.ok && Array.isArray(data.diagnostics) && data.diagnostics.length > 0) {
+          setDiagnostics(
+            data.diagnostics.map((item: DiagnosticSummary) => ({
+              id: item.id,
+              title: item.title,
+              description: item.description,
+              totalQuestions: item.totalQuestions,
+              totalCategories: item.totalCategories
+            }))
+          );
+        }
+      })
+      .catch(() => {
+        // On conserve la liste par défaut en cas d'erreur réseau.
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const features = [
     {
       icon: Lock,
@@ -42,25 +113,27 @@ export default function Home() {
   const howItWorks = [
     {
       step: 1,
-      title: "Choisissez votre mode",
-      description: "Pour vous-même ou pour aider un proche"
+      title: "Choisissez votre diagnostic",
+      description: "Violentomètre, Harcélomètre, Incestomètre…"
     },
     {
       step: 2,
-      title: "Répondez aux questions",
-      description: "38 questions réparties en 6 catégories"
+      title: "Sélectionnez votre mode",
+      description: "Pour vous-même ou pour aider un proche"
     },
     {
       step: 3,
-      title: "Obtenez votre diagnostic",
-      description: "Résultat détaillé et personnalisé"
+      title: "Répondez aux questions",
+      description: "Un questionnaire guidé, catégorie par catégorie"
     },
     {
       step: 4,
-      title: "Accédez aux ressources",
-      description: "Orientations vers les structures d'aide"
+      title: "Obtenez votre résultat",
+      description: "Diagnostic détaillé et orientation vers les ressources"
     }
   ];
+
+  const heroDiagnostics = diagnostics.slice(0, 3);
 
   return (
     <div className="relative pb-20">
@@ -75,7 +148,7 @@ export default function Home() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <motion.div 
+              <motion.div
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#eb5f2a]/10 border border-[#eb5f2a]/30 mb-6"
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -92,14 +165,14 @@ export default function Home() {
 
               <p className="text-lg text-slate-600 mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed">
                 ALERTE VIOLENCE est la première plateforme numérique d&apos;autodiagnostic des violences
-                en Afrique de l&apos;Ouest. Évaluez votre situation ou celle d&apos;un proche de manière
-                anonyme et confidentielle.
+                en Afrique de l&apos;Ouest. À travers plusieurs outils spécialisés, évaluez votre
+                situation ou celle d&apos;un proche de manière anonyme et confidentielle.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Link href="/diagnostic" className="glass-button flex items-center justify-center gap-2 text-lg">
-                    Commencer le diagnostic
+                    Commencer un diagnostic
                     <ArrowRight className="w-5 h-5" />
                   </Link>
                 </motion.div>
@@ -136,48 +209,60 @@ export default function Home() {
             >
               <div className="relative">
                 {/* Main Card */}
-                <motion.div 
+                <motion.div
                   className="glass-card p-8 relative z-10"
                   animate={{ y: [0, -10, 0] }}
                   transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                 >
                   <div className="flex items-center gap-4 mb-6">
                     <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#eb5f2a] to-[#d14d1a] flex items-center justify-center">
-                      <Heart className="w-8 h-8 text-white" />
+                      <ClipboardCheck className="w-8 h-8 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold text-slate-900">Violentomètre</h3>
-                      <p className="text-slate-500">Outil d&apos;autodiagnostic</p>
+                      <h3 className="text-xl font-bold text-slate-900">Nos diagnostics</h3>
+                      <p className="text-slate-500">Des outils d&apos;autodiagnostic</p>
                     </div>
                   </div>
 
-                  {/* Mini Category Preview */}
+                  {/* Mini Diagnostics Preview */}
                   <div className="space-y-3">
-                    {categories.slice(0, 3).map((category, index) => {
-                      const CategoryIcon = category.icon;
+                    {heroDiagnostics.map((diagnostic, index) => {
+                      const DiagnosticIcon = pickDiagnosticIcon(diagnostic.title);
                       return (
-                        <motion.div 
-                          key={category.id}
+                        <motion.div
+                          key={diagnostic.id}
                           className="flex items-center gap-3 p-3 rounded-xl bg-slate-50"
                           initial={{ opacity: 0, x: 20 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.5 + index * 0.1 }}
                         >
-                          <div className="w-8 h-8 rounded-lg bg-[#eb5f2a]/10 flex items-center justify-center">
-                            <CategoryIcon className="w-4 h-4 text-[#eb5f2a]" />
+                          <div className="w-8 h-8 rounded-lg bg-[#eb5f2a]/10 flex items-center justify-center flex-shrink-0">
+                            <DiagnosticIcon className="w-4 h-4 text-[#eb5f2a]" />
                           </div>
-                          <span className="text-slate-700 text-sm">{category.name}</span>
+                          <div className="min-w-0">
+                            <span className="block text-slate-700 text-sm font-medium truncate">
+                              {diagnostic.title}
+                            </span>
+                            <span className="block text-slate-400 text-xs">
+                              {diagnostic.totalQuestions} questions
+                            </span>
+                          </div>
                         </motion.div>
                       );
                     })}
-                    <div className="text-center text-slate-500 text-sm">
-                      + 3 autres catégories
-                    </div>
                   </div>
+
+                  <Link
+                    href="/diagnostic"
+                    className="mt-5 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-[#eb5f2a]/30 text-[#eb5f2a] text-sm font-medium hover:bg-[#eb5f2a]/10 transition-colors"
+                  >
+                    Voir tous les diagnostics
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
                 </motion.div>
 
                 {/* Floating Elements */}
-                <motion.div 
+                <motion.div
                   className="absolute -top-6 -right-6 w-24 h-24 rounded-2xl bg-gradient-to-br from-[#eb5f2a] to-[#d14d1a] flex items-center justify-center shadow-xl"
                   animate={{ rotate: [0, 10, 0] }}
                   transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -185,7 +270,7 @@ export default function Home() {
                   <Shield className="w-12 h-12 text-white" />
                 </motion.div>
 
-                <motion.div 
+                <motion.div
                   className="absolute -bottom-4 -left-4 w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center shadow-xl"
                   animate={{ rotate: [0, -10, 0] }}
                   transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
@@ -198,8 +283,8 @@ export default function Home() {
         </div>
 
         {/* Scroll Indicator */}
-        <motion.div 
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
+        <motion.div
+          className="hidden lg:block absolute bottom-8 left-1/2 -translate-x-1/2"
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 1.5, repeat: Infinity }}
         >
@@ -219,10 +304,10 @@ export default function Home() {
             viewport={{ once: true }}
           >
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-              Un outil conçu pour <span className="gradient-text">vous protéger</span>
+              Une plateforme conçue pour <span className="gradient-text">vous protéger</span>
             </h2>
             <p className="text-slate-600 max-w-2xl mx-auto leading-relaxed">
-              Notre plateforme a été pensée pour offrir un espace sûr, confidentiel et accessible
+              Nos outils ont été pensés pour offrir un espace sûr, confidentiel et accessible
               à toutes les personnes qui en ont besoin.
             </p>
           </motion.div>
@@ -306,7 +391,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Categories Preview */}
+      {/* Diagnostics disponibles */}
       <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <motion.div
@@ -315,96 +400,151 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
+            <div className="category-badge mx-auto mb-4">
+              <ClipboardCheck className="w-4 h-4" />
+              Nos outils
+            </div>
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-              6 catégories <span className="gradient-text">analysées</span>
+              Des diagnostics <span className="gradient-text">adaptés</span>
             </h2>
             <p className="text-slate-600 max-w-2xl mx-auto leading-relaxed">
-              Notre questionnaire couvre l&apos;ensemble des formes de violence pour un diagnostic complet.
+              Chaque outil couvre une forme de violence spécifique. Choisissez celui qui
+              correspond à votre situation, puis répondez au questionnaire à votre rythme.
             </p>
           </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 justify-items-center">
-            {categories.map((category, index) => {
-              const CategoryIcon = category.icon;
+            {diagnostics.map((diagnostic, index) => {
+              const DiagnosticIcon = pickDiagnosticIcon(diagnostic.title);
               return (
                 <motion.div
-                  key={category.id}
-                  className="glass-card p-5 group cursor-pointer w-full text-center"
+                  key={diagnostic.id}
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
                   whileHover={{ scale: 1.02 }}
+                  className="w-full"
                 >
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-[#eb5f2a]/10 flex items-center justify-center">
-                      <CategoryIcon className="w-6 h-6 text-[#eb5f2a]" />
+                  <Link
+                    href="/diagnostic"
+                    className="glass-card p-6 group w-full h-full flex flex-col items-center text-center"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-[#eb5f2a]/10 flex items-center justify-center mb-4">
+                      <DiagnosticIcon className="w-6 h-6 text-[#eb5f2a]" />
                     </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-slate-900 mb-1 group-hover:text-[#eb5f2a] transition-colors">
-                        {category.name}
-                      </h3>
-                      <p className="text-slate-600 text-sm mb-3">{category.description}</p>
-                      <div className="flex items-center justify-center gap-4 text-xs text-slate-500">
-                        <span>{category.questions.length} questions</span>
-                        <span>•</span>
-                        <span>Max {category.maxPoints} pts</span>
-                      </div>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-1 group-hover:text-[#eb5f2a] transition-colors">
+                      {diagnostic.title}
+                    </h3>
+                    {diagnostic.description && (
+                      <p className="text-slate-600 text-sm mb-3 line-clamp-3">{diagnostic.description}</p>
+                    )}
+                    <div className="mt-auto flex items-center justify-center gap-4 text-xs text-slate-500">
+                      <span className="flex items-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5" />
+                        {diagnostic.totalQuestions} questions
+                      </span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1.5">
+                        <Shield className="w-3.5 h-3.5" />
+                        {diagnostic.totalCategories} catégories
+                      </span>
                     </div>
-                  </div>
+                  </Link>
                 </motion.div>
               );
             })}
           </div>
+
+          <div className="mt-12 flex justify-center">
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Link href="/diagnostic" className="glass-button flex items-center justify-center gap-2">
+                Voir tous les diagnostics
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+            </motion.div>
+          </div>
         </div>
       </section>
 
-      {/* About LNDF Section */}
+      {/* Importance de la plateforme */}
       <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 flex justify-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full">
           <motion.div
-            className="glass-card p-6 md:p-10 w-full max-w-5xl mx-auto"
+            className="glass-card p-6 md:p-12 w-full"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <div className="grid md:grid-cols-2 gap-12 items-center text-center">
-              <div className="text-center">
-                <div className="category-badge mb-4">
-                  <Users className="w-4 h-4" />
-                  Organisation porteuse
+            <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+              <div className="text-center lg:text-left">
+                <div className="category-badge mb-4 mx-auto lg:mx-0">
+                  <Shield className="w-4 h-4" />
+                  Pourquoi c&apos;est important
                 </div>
                 <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
-                  Ligue Nigérienne des <span className="gradient-text">Droits des Femmes</span>
+                  Nommer les violences pour <span className="gradient-text">mieux s&apos;en protéger</span>
                 </h2>
-                <p className="text-slate-600 leading-relaxed mb-6">
-                  La LNDF est une pionnière : la première organisation du Niger à se déclarer 
-                  officiellement féministe jusque dans ses textes statutaires. Créée en décembre 2022, 
-                  elle œuvre pour une société plus équitable et offre un soutien indispensable aux 
-                  femmes qui en ont besoin.
+                <p className="text-slate-600 leading-relaxed mb-8">
+                  Trop souvent, les violences restent invisibles, banalisées ou tues par peur et par
+                  tabou. Beaucoup de personnes n&apos;ont ni un espace sûr pour en parler, ni les
+                  repères pour identifier ce qu&apos;elles vivent. ALERTE VIOLENCE offre un premier pas,
+                  anonyme et gratuit : reconnaître les signaux, mettre des mots sur une situation et
+                  s&apos;orienter vers les bonnes ressources — avant qu&apos;il ne soit trop tard.
                 </p>
-                <div className="grid grid-cols-2 gap-4 mb-6 justify-items-center">
-                  <div className="p-4 rounded-xl bg-slate-50">
-                    <div className="text-2xl font-bold text-[#eb5f2a]">81</div>
-                    <div className="text-slate-500 text-sm">Bénévoles actifs</div>
-                  </div>
-                  <div className="p-4 rounded-xl bg-slate-50">
-                    <div className="text-2xl font-bold text-[#eb5f2a]">2022</div>
-                    <div className="text-slate-500 text-sm">Année de création</div>
-                  </div>
+
+                <div className="space-y-4">
+                  {[
+                    {
+                      icon: MessageCircle,
+                      title: 'Briser le silence',
+                      description: "Un espace confidentiel pour nommer ce qui est trop souvent tu."
+                    },
+                    {
+                      icon: Eye,
+                      title: 'Reconnaître les signaux',
+                      description: "Des outils clairs pour identifier les différentes formes de violence."
+                    },
+                    {
+                      icon: Heart,
+                      title: 'Agir à temps',
+                      description: "Une orientation vers une aide adaptée, locale et bienveillante."
+                    }
+                  ].map((point, index) => (
+                    <motion.div
+                      key={index}
+                      className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 text-left"
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <div className="w-11 h-11 rounded-lg bg-[#eb5f2a]/10 flex items-center justify-center flex-shrink-0">
+                        <point.icon className="w-5 h-5 text-[#eb5f2a]" />
+                      </div>
+                      <div>
+                        <h3 className="text-slate-900 font-semibold mb-1">{point.title}</h3>
+                        <p className="text-slate-600 text-sm">{point.description}</p>
+                      </div>
+                    </motion.div>
+                  ))}
                 </div>
-                <Link href="/a-propos" className="inline-flex items-center gap-2 text-[#eb5f2a] hover:text-[#f4855c] transition-colors">
-                  En savoir plus sur la LNDF
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
+
+                <div className="mt-8 flex justify-center lg:justify-start">
+                  <Link href="/a-propos" className="inline-flex items-center gap-2 text-[#eb5f2a] hover:text-[#f4855c] transition-colors">
+                    En savoir plus sur notre mission
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
               </div>
+
               <div className="relative flex justify-center">
-                <div className="aspect-square rounded-2xl bg-gradient-to-br from-[#eb5f2a]/15 to-slate-200 flex items-center justify-center">
+                <div className="w-full max-w-md aspect-square rounded-2xl bg-gradient-to-br from-[#eb5f2a]/15 to-slate-200 flex items-center justify-center">
                   <motion.div
                     animate={{ scale: [1, 1.1, 1] }}
                     transition={{ duration: 3, repeat: Infinity }}
                   >
-                    <Heart className="w-32 h-32 text-[#eb5f2a]" />
+                    <Shield className="w-32 h-32 text-[#eb5f2a]" />
                   </motion.div>
                 </div>
               </div>
@@ -424,7 +564,7 @@ export default function Home() {
           >
             {/* Background decoration */}
             <div className="absolute inset-0 bg-gradient-to-br from-[#eb5f2a]/10 to-transparent pointer-events-none" />
-            
+
             <div className="relative z-10 flex flex-col items-center">
               <motion.div
                 initial={{ scale: 0 }}
@@ -444,7 +584,7 @@ export default function Home() {
                 anonyme et totalement confidentiel.
               </p>
 
-              <motion.div 
+              <motion.div
                 className="flex flex-col sm:flex-row gap-4 justify-center"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}

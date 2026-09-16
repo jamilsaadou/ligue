@@ -5,18 +5,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LayoutDashboard, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { useAuth, type AuthUser } from './AuthProvider';
 
-type UserData = {
-  id: string;
-  email: string;
-  role: 'super_admin' | 'admin' | 'user';
-  name: string | null;
-};
-
-export default function UserMenu({ user }: { user: UserData }) {
+export default function UserMenu({ user }: { user: AuthUser }) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { logout } = useAuth();
 
   const isAdmin = user.role === 'admin' || user.role === 'super_admin';
   const displayName = user.name || user.email.split('@')[0];
@@ -34,13 +29,9 @@ export default function UserMenu({ user }: { user: UserData }) {
   }, []);
 
   const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/');
-      router.refresh();
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
+    await logout();
+    setIsOpen(false);
+    router.push('/');
   };
 
   return (

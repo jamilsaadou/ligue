@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { UserPlus, Mail, ShieldCheck, ArrowRight, User } from 'lucide-react';
+import { useAuth } from '@/components/AuthProvider';
 
 export default function InscriptionPage() {
   const router = useRouter();
+  const { refresh } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,7 +36,9 @@ export default function InscriptionPage() {
         return;
       }
 
-      router.push('/compte');
+      // Met à jour la barre de navigation, puis lance l'étape d'onboarding.
+      await refresh();
+      router.push('/inscription/finaliser');
     } catch (err) {
       console.error(err);
       setError('Impossible de créer le compte. Réessayez.');

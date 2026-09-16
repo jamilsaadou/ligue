@@ -1,721 +1,529 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import Link from 'next/link';
-import { 
-  Phone, 
-  Mail, 
-  MapPin, 
-  Globe, 
-  Building, 
-  Heart,
-  Shield,
-  AlertTriangle,
-  Users,
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import {
+  ArrowDown,
   ArrowRight,
+  Building2,
+  Check,
+  ExternalLink,
+  Globe2,
+  Headphones,
+  HeartHandshake,
+  LifeBuoy,
+  Mail,
+  MapPin,
+  Phone,
   Search,
-  ChevronDown,
-  Flag
-} from 'lucide-react';
+  Shield,
+  Users,
+  X,
+} from "lucide-react";
 
 interface Resource {
-  id?: string;
+  id: string;
   name: string;
   type: string;
   contact: string;
-  description?: string;
-  address?: string;
-  website?: string;
+  description: string | null;
+  address: string | null;
+  website: string | null;
 }
-
 interface Country {
-  id?: string;
+  id: string;
   name: string;
   code: string;
   emergencyNumber: string | null;
   resources: Resource[];
 }
-
-const getCountryIdentity = (country: Country) =>
-  (country.name || country.code).trim().toLocaleLowerCase('fr-FR');
-
-const getCountryRenderKey = (country: Country) =>
-  country.id || country.code || getCountryIdentity(country);
-
-const getResourceIdentity = (resource: Resource) =>
-  resource.id ||
-  `${resource.name.trim().toLocaleLowerCase('fr-FR')}::${resource.contact.trim().toLocaleLowerCase('fr-FR')}`;
-
-const normalizeCountries = (sourceCountries: Country[]) => {
-  const countryMap = new Map<string, Country>();
-
-  sourceCountries.forEach((country) => {
-    const countryKey = getCountryIdentity(country);
-    if (!countryKey) return;
-
-    const existing = countryMap.get(countryKey);
-    if (!existing) {
-      countryMap.set(countryKey, {
-        ...country,
-        resources: country.resources ?? []
-      });
-      return;
-    }
-
-    const resourceMap = new Map<string, Resource>();
-    [...existing.resources, ...(country.resources ?? [])].forEach((resource) => {
-      resourceMap.set(getResourceIdentity(resource), resource);
-    });
-
-    countryMap.set(countryKey, {
-      ...existing,
-      id: existing.id || country.id,
-      code: existing.code || country.code,
-      emergencyNumber: existing.emergencyNumber || country.emergencyNumber,
-      resources: Array.from(resourceMap.values())
-    });
-  });
-
-  return Array.from(countryMap.values());
+const resourceTypes = [
+  { key: "all", label: "Tous les services", icon: LifeBuoy },
+  { key: "association", label: "Associations", icon: Users },
+  { key: "institution", label: "Institutions", icon: Building2 },
+  { key: "ligne_ecoute", label: "Lignes d’écoute", icon: Headphones },
+  { key: "urgence", label: "Urgences", icon: Phone },
+];
+const typeLabels: Record<string, string> = {
+  association: "Association",
+  institution: "Institution",
+  ligne_ecoute: "Ligne d’écoute",
+  urgence: "Urgence",
 };
+const normalize = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("fr")
+    .trim();
+function contactLink(contact: string) {
+  const value = contact.trim();
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return `mailto:${value}`;
+  if (/^\+?[\d\s().-]+$/.test(value) && /\d/.test(value))
+    return `tel:${value.replace(/[^\d+]/g, "")}`;
+  return null;
+}
+function websiteLink(website: string | null) {
+  try {
+    const url = new URL(website || "");
+    return ["https:", "http:"].includes(url.protocol) ? url.href : null;
+  } catch {
+    return null;
+  }
+}
 
 export default function ResourcesPage() {
-  const fallbackCountries: Country[] = [
-    {
-      name: "Niger",
-      code: "NE",
-      emergencyNumber: "17",
-      resources: [
-        {
-          name: "Ligue Nigérienne des Droits des Femmes (LNDF)",
-          type: "Association",
-          contact: "lndf.niger@gmail.com",
-          description: "Première organisation féministe du Niger, accompagnement des victimes de violences",
-          address: "Niamey, Niger"
-        },
-        {
-          name: "Ministère de la Promotion de la Femme et de la Protection de l'Enfant",
-          type: "Institution",
-          contact: "+227 20 72 29 83",
-          description: "Institution gouvernementale pour la protection des femmes"
-        },
-        {
-          name: "Police Secours",
-          type: "Urgence",
-          contact: "17",
-          description: "Numéro d'urgence pour toute situation de danger immédiat"
-        },
-        {
-          name: "UNFPA Niger",
-          type: "Institution",
-          contact: "+227 20 72 28 36",
-          description: "Programme des Nations Unies pour la population et les droits reproductifs",
-          website: "https://niger.unfpa.org"
-        },
-        {
-          name: "ONG Dimol",
-          type: "Association",
-          contact: "+227 20 73 40 53",
-          description: "Association de lutte contre les violences faites aux femmes"
-        }
-      ]
-    },
-    {
-      name: "Mali",
-      code: "ML",
-      emergencyNumber: "17",
-      resources: [
-        {
-          name: "AJM - Association des Juristes Maliennes",
-          type: "Association",
-          contact: "+223 20 22 49 95",
-          description: "Aide juridique gratuite pour les femmes victimes de violences"
-        },
-        {
-          name: "Police Secours",
-          type: "Urgence",
-          contact: "17",
-          description: "Numéro d'urgence national"
-        },
-        {
-          name: "APDF - Association pour le Progrès et la Défense des Droits des Femmes",
-          type: "Association",
-          contact: "+223 20 21 13 46",
-          description: "Accompagnement juridique et psychologique des victimes"
-        },
-        {
-          name: "CAFO - Coordination des Associations et ONG Féminines du Mali",
-          type: "Association",
-          contact: "+223 20 21 96 95",
-          description: "Réseau d'organisations féminines pour les droits des femmes"
-        }
-      ]
-    },
-    {
-      name: "Burkina Faso",
-      code: "BF",
-      emergencyNumber: "17",
-      resources: [
-        {
-          name: "Association Voix de Femmes (AVF)",
-          type: "Association",
-          contact: "+226 25 31 32 95",
-          description: "Écoute et accompagnement des femmes victimes de violences"
-        },
-        {
-          name: "Police Secours",
-          type: "Urgence",
-          contact: "17",
-          description: "Numéro d'urgence national"
-        },
-        {
-          name: "Ministère de la Femme, de la Solidarité Nationale et de la Famille",
-          type: "Institution",
-          contact: "+226 25 30 68 75",
-          description: "Institution gouvernementale pour les droits des femmes"
-        },
-        {
-          name: "CIMDL - Centre d'Information sur les Droits de la Femme",
-          type: "Association",
-          contact: "+226 25 36 73 38",
-          description: "Information et sensibilisation sur les droits des femmes"
-        }
-      ]
-    },
-    {
-      name: "Sénégal",
-      code: "SN",
-      emergencyNumber: "17",
-      resources: [
-        {
-          name: "AJS - Association des Juristes Sénégalaises",
-          type: "Association",
-          contact: "+221 33 824 42 09",
-          description: "Aide juridique et accompagnement des victimes de violences"
-        },
-        {
-          name: "Police Secours",
-          type: "Urgence",
-          contact: "17",
-          description: "Numéro d'urgence national"
-        },
-        {
-          name: "Maison Rose",
-          type: "Association",
-          contact: "+221 33 849 35 45",
-          description: "Centre d'accueil et d'hébergement pour femmes victimes de violences"
-        },
-        {
-          name: "CLVF - Comité de Lutte contre les Violences faites aux Femmes",
-          type: "Association",
-          contact: "+221 33 825 81 17",
-          description: "Coordination nationale de lutte contre les VBG"
-        },
-        {
-          name: "Ligne verte VBG",
-          type: "Ligne d'écoute",
-          contact: "800 00 50 50",
-          description: "Ligne d'écoute gratuite pour les victimes de violences"
-        }
-      ]
-    },
-    {
-      name: "Côte d'Ivoire",
-      code: "CI",
-      emergencyNumber: "110",
-      resources: [
-        {
-          name: "AFJCI - Association des Femmes Juristes de Côte d'Ivoire",
-          type: "Association",
-          contact: "+225 22 44 63 18",
-          description: "Aide juridique gratuite pour les femmes victimes de violences"
-        },
-        {
-          name: "Police Secours",
-          type: "Urgence",
-          contact: "110",
-          description: "Numéro d'urgence national"
-        },
-        {
-          name: "Plateforme de lutte contre les VBG",
-          type: "Institution",
-          contact: "+225 27 22 50 32 00",
-          description: "Plateforme gouvernementale de coordination anti-VBG"
-        },
-        {
-          name: "ONG LIDER",
-          type: "Association",
-          contact: "+225 22 47 07 12",
-          description: "Accompagnement psychologique et social des victimes"
-        }
-      ]
-    },
-    {
-      name: "Bénin",
-      code: "BJ",
-      emergencyNumber: "117",
-      resources: [
-        {
-          name: "Police Secours",
-          type: "Urgence",
-          contact: "117",
-          description: "Numéro d'urgence national"
-        },
-        {
-          name: "WILDAF Bénin",
-          type: "Association",
-          contact: "+229 21 30 01 63",
-          description: "Réseau Femmes, Droit et Développement en Afrique"
-        },
-        {
-          name: "Ministère des Affaires Sociales",
-          type: "Institution",
-          contact: "+229 21 31 36 25",
-          description: "Service social pour l'accompagnement des victimes"
-        }
-      ]
-    },
-    {
-      name: "Togo",
-      code: "TG",
-      emergencyNumber: "117",
-      resources: [
-        {
-          name: "Police Secours",
-          type: "Urgence",
-          contact: "117",
-          description: "Numéro d'urgence national"
-        },
-        {
-          name: "GF2D - Groupe de réflexion et d'action Femme, Démocratie et Développement",
-          type: "Association",
-          contact: "+228 22 21 47 43",
-          description: "Accompagnement juridique des femmes"
-        },
-        {
-          name: "WILDAF Togo",
-          type: "Association",
-          contact: "+228 22 22 74 80",
-          description: "Réseau pour les droits des femmes"
-        }
-      ]
-    },
-    {
-      name: "Guinée",
-      code: "GN",
-      emergencyNumber: "122",
-      resources: [
-        {
-          name: "Police Secours",
-          type: "Urgence",
-          contact: "122",
-          description: "Numéro d'urgence national"
-        },
-        {
-          name: "AGUIAS - Association Guinéenne pour l'Assistance Sociale",
-          type: "Association",
-          contact: "+224 622 35 11 22",
-          description: "Accompagnement social des victimes de violences"
-        },
-        {
-          name: "OPROGEM - Office de Protection du Genre",
-          type: "Institution",
-          contact: "+224 628 68 68 68",
-          description: "Institution gouvernementale pour la protection des femmes"
-        }
-      ]
-    }
-  ];
-
-  const [countries, setCountries] = useState<Country[]>(() => normalizeCountries(fallbackCountries));
-  const [selectedCountry, setSelectedCountry] = useState<string>(
-    fallbackCountries[0]?.name || ''
-  );
-  const [searchQuery, setSearchQuery] = useState('');
-
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [countryId, setCountryId] = useState("");
+  const [search, setSearch] = useState("");
+  const [type, setType] = useState("all");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [retry, setRetry] = useState(0);
   useEffect(() => {
-    const fetchResources = async () => {
-      try {
-        const response = await fetch('/api/resources');
+    const controller = new AbortController();
+    fetch("/api/resources", { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Resources unavailable");
         const data = await response.json();
-        if (response.ok && data?.countries?.length) {
-          const nextCountries = normalizeCountries(data.countries);
-          setCountries(nextCountries);
-          setSelectedCountry((currentCountry) =>
-            nextCountries.find((country) => country.name === currentCountry)
-              ? currentCountry
-              : nextCountries[0]?.name || ''
-          );
+        if (!data.ok || !Array.isArray(data.countries))
+          throw new Error("Invalid resources");
+        if (controller.signal.aborted) return;
+        setCountries(data.countries);
+        setCountryId((current) =>
+          data.countries.some((country: Country) => country.id === current)
+            ? current
+            : data.countries.find((country: Country) => country.code === "NE")
+                ?.id ||
+              data.countries[0]?.id ||
+              "",
+        );
+        setError(false);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setError(true);
+          setLoading(false);
         }
-      } catch (error) {
-        console.error('Failed to load resources', error);
-      }
-    };
-    fetchResources();
-  }, []);
-
-  const selectedCountryData = countries.find(c => c.name === selectedCountry);
-
-  const filteredResources = selectedCountryData?.resources.filter(resource =>
-    resource.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    resource.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    resource.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      });
+    return () => controller.abort();
+  }, [retry]);
+  const selected = countries.find((country) => country.id === countryId);
+  const resources = selected?.resources || [];
+  const visible = resources.filter(
+    (resource) =>
+      (type === "all" || type === resource.type) &&
+      normalize(
+        `${resource.name} ${resource.description || ""} ${resource.address || ""} ${resource.contact}`,
+      ).includes(normalize(search)),
   );
-
-  const normalizeType = (type: string) => type.toLowerCase().replace(/[_-]/g, ' ');
-
-  const getTypeIcon = (type: string) => {
-    switch (normalizeType(type)) {
-      case 'association':
-        return Users;
-      case 'institution':
-        return Building;
-      case 'urgence':
-        return AlertTriangle;
-      case "ligne d'écoute":
-      case 'ligne ecoute':
-        return Phone;
-      default:
-        return Heart;
-    }
-  };
-
-  const getTypeColor = (type: string) => {
-    switch (normalizeType(type)) {
-      case 'association':
-        return 'text-[#eb5f2a] bg-[#eb5f2a]/10';
-      case 'institution':
-        return 'text-slate-600 bg-slate-100';
-      case 'urgence':
-        return 'text-red-600 bg-red-100';
-      case "ligne d'écoute":
-      case 'ligne ecoute':
-        return 'text-orange-600 bg-orange-100';
-      default:
-        return 'text-slate-600 bg-slate-100';
-    }
-  };
-
-  const getTypeLabel = (type: string) => {
-    switch (normalizeType(type)) {
-      case 'association':
-        return 'Association';
-      case 'institution':
-        return 'Institution';
-      case 'urgence':
-        return 'Urgence';
-      case "ligne d'écoute":
-      case 'ligne ecoute':
-        return "Ligne d'écoute";
-      default:
-        return type;
-    }
-  };
-
+  const emergencyLink = selected?.emergencyNumber
+    ? contactLink(selected.emergencyNumber)
+    : null;
+  const coveredCountries = countries.filter(
+    (country) => country.resources.length > 0,
+  ).length;
+  const totalResources = countries.reduce(
+    (sum, country) => sum + country.resources.length,
+    0,
+  );
   return (
-    <div className="min-h-screen pb-12">
-      {/* Hero Section */}
-      <section className="relative pt-12 pb-8 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            className="text-center max-w-3xl mx-auto"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <motion.div 
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#eb5f2a]/10 border border-[#eb5f2a]/30 mb-6"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <Shield className="w-4 h-4 text-[#eb5f2a]" />
-              <span className="text-[#eb5f2a] text-sm font-medium">Structures d&apos;aide</span>
-            </motion.div>
-
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight mb-6">
-              Ressources <span className="gradient-text">d&apos;aide</span>
+    <div className="min-h-screen bg-[#faf9f6] pb-16">
+      <section className="relative overflow-hidden border-b border-orange-100 bg-[#fff7ee]">
+        <div
+          className="pointer-events-none absolute -right-32 -top-40 h-[500px] w-[500px] rounded-full border-[70px] border-orange-100/60"
+          aria-hidden="true"
+        />
+        <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[1.2fr_0.8fr] lg:items-center lg:gap-16 lg:px-8 lg:py-20">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-white/80 px-3 py-2 text-xs font-semibold text-orange-800">
+              <HeartHandshake size={16} aria-hidden="true" />
+              Un premier pas vers du soutien
+            </span>
+            <h1 className="mt-6 max-w-2xl text-4xl font-bold leading-[1.12] tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+              Vous n’avez pas à<br className="hidden sm:block" /> faire face{" "}
+              <span className="text-[#d94c18]">seul·e.</span>
             </h1>
-
-            <p className="text-lg text-slate-600 leading-relaxed">
-              Trouvez les structures d&apos;aide disponibles dans votre pays. Ces organisations
-              peuvent vous accompagner en toute confidentialité.
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">
+              Trouvez une association, un service d’écoute ou une structure
+              d’accompagnement dans votre pays.
             </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Emergency Banner */}
-      <section className="py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            className="p-6 rounded-2xl bg-gradient-to-r from-red-50 to-orange-50 border border-red-200"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            <a
+              href="#trouver-une-ressource"
+              className="glass-button mt-7 inline-flex items-center justify-center gap-2"
+            >
+              Trouver un contact
+              <ArrowDown size={18} aria-hidden="true" />
+            </a>
+            <p className="mt-4 flex items-center gap-2 text-xs text-slate-500">
+              <Check size={15} aria-hidden="true" />
+              Annuaire accessible sans créer de compte
+            </p>
+          </div>
+          <aside
+            className="relative rounded-[2rem] border border-white bg-white/90 p-6 shadow-[0_20px_70px_-35px_rgba(154,70,27,0.4)] sm:p-8"
+            aria-labelledby="support-title"
           >
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
-                  <Phone className="w-6 h-6 text-red-600" />
-                </div>
-                <div>
-                  <h4 className="text-slate-900 font-semibold">En danger immédiat ?</h4>
-                  <p className="text-slate-600 text-sm">Appelez immédiatement les secours de votre pays</p>
-                </div>
+            <div className="mb-6 flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 text-orange-700">
+                <HeartHandshake size={25} aria-hidden="true" />
               </div>
-              {selectedCountryData && (
-                <a
-                  href={`tel:${selectedCountryData.emergencyNumber}`}
-                  className="px-6 py-3 rounded-xl bg-red-500 text-white font-semibold flex items-center gap-2 hover:bg-red-600 transition-colors"
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-widest text-orange-700">
+                  À votre rythme
+                </p>
+                <h2
+                  id="support-title"
+                  className="mt-1 text-xl font-bold text-slate-900"
                 >
-                  <Phone className="w-5 h-5" />
-                  Appeler le {selectedCountryData.emergencyNumber}
-                </a>
-              )}
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Country Selection & Search */}
-      <section className="py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row gap-6">
-            {/* Country Selector */}
-            <div className="relative flex-1 max-w-xs">
-              <label className="block text-slate-500 text-sm mb-2">Sélectionnez votre pays</label>
-              <div className="relative">
-                <select
-                  value={selectedCountry}
-                  onChange={(e) => setSelectedCountry(e.target.value)}
-                  className="glass-input w-full appearance-none cursor-pointer pr-10"
-                >
-                  {countries.map((country) => (
-                    <option key={getCountryRenderKey(country)} value={country.name} className="bg-white text-slate-900">
-                      {country.code} — {country.name}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+                  Un soutien adapté
+                </h2>
               </div>
             </div>
-
-            {/* Search */}
-            <div className="flex-1">
-              <label className="block text-slate-500 text-sm mb-2">Rechercher une ressource</label>
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Rechercher par nom, type..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="glass-input w-full pl-12"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Country Tabs */}
-      <section className="py-4">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-            {countries.map((country) => {
-              const isSelected = selectedCountry === country.name;
-              return (
-                <button
-                  key={getCountryRenderKey(country)}
-                  onClick={() => setSelectedCountry(country.name)}
-                  className={`flex items-center gap-3 px-4 py-2 rounded-xl whitespace-nowrap transition-all border ${
-                    isSelected
-                      ? 'bg-[#eb5f2a] border-[#eb5f2a] text-white shadow-sm'
-                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isSelected ? 'bg-white/20' : 'bg-slate-50'}`}>
-                    <Flag className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-[#eb5f2a]'}`} />
+            <div className="space-y-5">
+              {[
+                {
+                  icon: Headphones,
+                  title: "Être écouté·e",
+                  text: "Repérez les lignes d’écoute et les contacts disponibles.",
+                },
+                {
+                  icon: Users,
+                  title: "Être accompagné·e",
+                  text: "Découvrez les associations et leurs services.",
+                },
+                {
+                  icon: Building2,
+                  title: "Trouver un interlocuteur",
+                  text: "Identifiez les structures à contacter dans votre pays.",
+                },
+              ].map(({ icon: Icon, title, text }) => (
+                <div key={title} className="flex gap-3">
+                  <Icon
+                    size={20}
+                    className="mt-1 shrink-0 text-orange-600"
+                    aria-hidden="true"
+                  />
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-800">
+                      {title}
+                    </h3>
+                    <p className="mt-1 text-sm leading-relaxed text-slate-500">
+                      {text}
+                    </p>
                   </div>
-                  <div className="text-left">
-                    <div className={`text-[10px] uppercase tracking-widest ${isSelected ? 'text-white/80' : 'text-slate-500'}`}>
-                      {country.code}
-                    </div>
-                    <div className={`text-sm font-medium ${isSelected ? 'text-white' : 'text-slate-700'}`}>
-                      {country.name}
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+                </div>
+              ))}
+            </div>
+          </aside>
         </div>
       </section>
-
-      {/* Resources Grid */}
-      <section className="py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {selectedCountryData && (
-            <>
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-12 h-12 rounded-2xl bg-[#eb5f2a]/10 border border-[#eb5f2a]/30 flex items-center justify-center">
-                  <Flag className="w-6 h-6 text-[#eb5f2a]" />
-                </div>
-                <div>
-                  <div className="text-xs uppercase tracking-widest text-slate-500">{selectedCountryData.code}</div>
-                  <h2 className="text-2xl font-bold text-slate-900">{selectedCountryData.name}</h2>
-                  <p className="text-slate-500 text-sm">
-                    {filteredResources?.length} ressource{filteredResources && filteredResources.length > 1 ? 's' : ''} disponible{filteredResources && filteredResources.length > 1 ? 's' : ''}
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {filteredResources?.map((resource, index) => {
-                  const TypeIcon = getTypeIcon(resource.type);
-                  const typeColor = getTypeColor(resource.type);
-                  
-                  return (
-                    <motion.div
-                      key={getResourceIdentity(resource)}
-                      className="glass-card p-6"
-                      initial={{ opacity: 0, y: 30 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <div className="flex items-start justify-between mb-4">
-                        <div className={`p-2 rounded-lg ${typeColor.split(' ')[1]}`}>
-                          <TypeIcon className={`w-5 h-5 ${typeColor.split(' ')[0]}`} />
-                        </div>
-                        <span className={`text-xs font-medium px-2 py-1 rounded-full ${typeColor}`}>
-                          {getTypeLabel(resource.type)}
-                        </span>
-                      </div>
-
-                      <h3 className="text-lg font-semibold text-slate-900 mb-2">{resource.name}</h3>
-                      
-                      {resource.description && (
-                        <p className="text-slate-600 text-sm mb-4">{resource.description}</p>
-                      )}
-
-                      <div className="space-y-2 pt-4 border-t border-slate-200">
-                        <a
-                          href={
-                            normalizeType(resource.type) === 'urgence' ||
-                            normalizeType(resource.type) === "ligne d'écoute" ||
-                            normalizeType(resource.type) === 'ligne ecoute'
-                              ? `tel:${resource.contact}`
-                              : resource.contact.includes('@')
-                                ? `mailto:${resource.contact}`
-                                : `tel:${resource.contact}`
-                          }
-                          className="flex items-center gap-2 text-[#eb5f2a] hover:text-[#f4855c] transition-colors"
-                        >
-                          {resource.contact.includes('@') ? (
-                            <Mail className="w-4 h-4" />
-                          ) : (
-                            <Phone className="w-4 h-4" />
-                          )}
-                          <span className="text-sm font-medium">{resource.contact}</span>
-                        </a>
-
-                        {resource.address && (
-                          <div className="flex items-center gap-2 text-slate-500">
-                            <MapPin className="w-4 h-4" />
-                            <span className="text-sm">{resource.address}</span>
-                          </div>
-                        )}
-
-                        {resource.website && (
-                          <a
-                            href={resource.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors"
-                          >
-                            <Globe className="w-4 h-4" />
-                            <span className="text-sm">Site web</span>
-                          </a>
-                        )}
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-
-              {filteredResources?.length === 0 && (
-                <div className="text-center py-12">
-                  <p className="text-slate-600">Aucune ressource trouvée pour votre recherche.</p>
-                </div>
-              )}
-            </>
+      <section
+        id="trouver-une-ressource"
+        className="mx-auto max-w-7xl scroll-mt-28 px-4 pt-10 sm:px-6 lg:px-8"
+        aria-labelledby="directory-title"
+      >
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-700">
+              L’annuaire d’accompagnement
+            </p>
+            <h2
+              id="directory-title"
+              className="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl"
+            >
+              Le bon contact, près de vous
+            </h2>
+          </div>
+          {!loading && !error && (
+            <p className="flex items-center gap-2 text-sm text-slate-500">
+              <Globe2 size={17} aria-hidden="true" />
+              {totalResources} ressource{totalResources > 1 ? "s" : ""} ·{" "}
+              {coveredCountries} pays couvert{coveredCountries > 1 ? "s" : ""}
+            </p>
           )}
         </div>
-      </section>
-
-      {/* Information Section */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-6">
-            <motion.div 
-              className="glass-card p-8"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <div className="w-14 h-14 rounded-xl bg-slate-100 flex items-center justify-center mb-4">
-                <Shield className="w-7 h-7 text-[#eb5f2a]" />
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+          <div className="grid gap-4 md:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)]">
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold text-slate-700">
+                Votre pays
+              </span>
+              <select
+                value={countryId}
+                onChange={(event) => setCountryId(event.target.value)}
+                disabled={loading || !countries.length}
+                className="glass-input min-h-12 w-full disabled:opacity-60"
+              >
+                {!countries.length && (
+                  <option value="">
+                    {loading ? "Chargement des pays…" : "Aucun pays disponible"}
+                  </option>
+                )}
+                {countries.map((country) => (
+                  <option key={country.id} value={country.id}>
+                    {country.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold text-slate-700">
+                Rechercher un contact
+              </span>
+              <div className="relative">
+                <Search
+                  size={18}
+                  className="pointer-events-none absolute left-4 top-4 text-slate-400"
+                  aria-hidden="true"
+                />
+                <input
+                  type="search"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Nom, service, ville…"
+                  className="glass-input min-h-12 w-full !pl-11"
+                />
               </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-4">Confidentialité garantie</h3>
-              <p className="text-slate-600 leading-relaxed">
-                Toutes les structures listées s&apos;engagent à respecter votre confidentialité.
-                Vous pouvez les contacter en toute sécurité. Votre démarche restera confidentielle.
-              </p>
-            </motion.div>
-
-            <motion.div 
-              className="glass-card p-8"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-            >
-              <div className="w-14 h-14 rounded-xl bg-[#eb5f2a]/10 flex items-center justify-center mb-4">
-                <Heart className="w-7 h-7 text-[#eb5f2a]" />
-              </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-4">Accompagnement bienveillant</h3>
-              <p className="text-slate-600 leading-relaxed">
-                Ces organisations sont formées pour vous accueillir avec bienveillance, 
-                sans jugement. Elles sont là pour vous écouter et vous accompagner 
-                dans vos démarches.
-              </p>
-            </motion.div>
+            </label>
+          </div>
+          <div
+            role="group"
+            aria-label="Type de service"
+            className="mt-5 flex flex-wrap gap-2"
+          >
+            {resourceTypes.map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => setType(key)}
+                aria-pressed={type === key}
+                className={`inline-flex min-h-11 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition ${type === key ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-600 hover:border-orange-300 hover:bg-orange-50"}`}
+              >
+                <Icon size={15} aria-hidden="true" />
+                {label}
+              </button>
+            ))}
           </div>
         </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            className="glass-card p-8 md:p-12 text-center"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+        {selected && emergencyLink?.startsWith("tel:") && (
+          <aside className="mt-5 flex flex-col gap-4 rounded-2xl border border-red-200 bg-red-50 p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex gap-3">
+              <Shield
+                size={22}
+                className="mt-0.5 shrink-0 text-red-700"
+                aria-hidden="true"
+              />
+              <div>
+                <h3 className="font-semibold text-red-900">
+                  Besoin des secours ?
+                </h3>
+                <p className="mt-1 text-sm text-red-800">
+                  Numéro d’urgence renseigné pour {selected.name}.
+                </p>
+              </div>
+            </div>
+            <a
+              href={emergencyLink}
+              className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-red-700 px-5 py-3 text-sm font-semibold text-white hover:bg-red-800"
+            >
+              <Phone size={17} aria-hidden="true" />
+              Appeler le {selected.emergencyNumber}
+            </a>
+          </aside>
+        )}
+        {loading ? (
+          <div role="status" className="py-12 text-center text-slate-500">
+            Chargement des contacts…
+          </div>
+        ) : error ? (
+          <div
+            role="alert"
+            className="my-6 rounded-2xl border border-orange-200 bg-white p-8 text-center"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
-              Vous n&apos;avez pas encore fait le <span className="gradient-text">diagnostic</span> ?
-            </h2>
-            <p className="text-slate-600 max-w-xl mx-auto mb-8">
-              Notre outil d&apos;autodiagnostic peut vous aider à évaluer votre situation
-              et à identifier les ressources adaptées à vos besoins.
+            <h3 className="font-semibold text-slate-900">
+              L’annuaire est momentanément indisponible
+            </h3>
+            <p className="mt-2 text-sm text-slate-500">
+              Les contacts n’ont pas pu être chargés.
             </p>
-            <Link href="/diagnostic" className="glass-button inline-flex items-center gap-2">
-              Faire le diagnostic
-              <ArrowRight className="w-5 h-5" />
+            <button
+              onClick={() => {
+                setLoading(true);
+                setError(false);
+                setRetry((value) => value + 1);
+              }}
+              className="mt-4 min-h-11 rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white"
+            >
+              Réessayer
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="mb-5 mt-8 flex flex-wrap items-center justify-between gap-3">
+              <h3 className="text-lg font-semibold text-slate-900">
+                {selected?.name || "Contacts disponibles"}{" "}
+                <span
+                  role="status"
+                  className="ml-2 text-sm font-normal text-slate-500"
+                >
+                  {visible.length} résultat{visible.length > 1 ? "s" : ""}
+                </span>
+              </h3>
+              {(search || type !== "all") && (
+                <button
+                  onClick={() => {
+                    setSearch("");
+                    setType("all");
+                  }}
+                  className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-orange-700"
+                >
+                  <X size={16} aria-hidden="true" />
+                  Effacer les filtres
+                </button>
+              )}
+            </div>
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+              {visible.map((resource) => {
+                const Icon =
+                  resourceTypes.find((item) => item.key === resource.type)
+                    ?.icon || HeartHandshake;
+                const contactHref = contactLink(resource.contact);
+                const websiteHref = websiteLink(resource.website);
+                return (
+                  <article
+                    key={resource.id}
+                    className="flex min-w-0 flex-col rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md sm:p-6"
+                  >
+                    <div className="mb-5 flex items-center justify-between gap-3">
+                      <div
+                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${resource.type === "urgence" ? "bg-red-50 text-red-700" : "bg-orange-50 text-orange-700"}`}
+                      >
+                        <Icon size={21} aria-hidden="true" />
+                      </div>
+                      <span className="rounded-full bg-slate-50 px-3 py-1.5 text-xs font-medium text-slate-600">
+                        {typeLabels[resource.type] || resource.type}
+                      </span>
+                    </div>
+                    <h4 className="break-words text-lg font-bold leading-snug text-slate-900">
+                      {resource.name}
+                    </h4>
+                    <p className="mt-3 break-words text-sm leading-relaxed text-slate-500">
+                      {resource.description ||
+                        "Contactez cette structure pour connaître les services proposés."}
+                    </p>
+                    {resource.address && (
+                      <p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-slate-500">
+                        <MapPin
+                          size={15}
+                          className="mt-0.5 shrink-0"
+                          aria-hidden="true"
+                        />
+                        <span className="break-words">{resource.address}</span>
+                      </p>
+                    )}
+                    <div className="mt-auto pt-6">
+                      <div className="border-t border-slate-100 pt-4">
+                        <p className="mb-3 break-all text-sm font-medium text-slate-700">
+                          {resource.contact}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {contactHref && (
+                            <a
+                              href={contactHref}
+                              className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-orange-50 px-4 py-2.5 text-sm font-semibold text-orange-800 hover:bg-orange-100"
+                              aria-label={`${contactHref.startsWith("mailto:") ? "Écrire à" : "Appeler"} ${resource.name}`}
+                            >
+                              {contactHref.startsWith("mailto:") ? (
+                                <Mail size={16} aria-hidden="true" />
+                              ) : (
+                                <Phone size={16} aria-hidden="true" />
+                              )}
+                              {contactHref.startsWith("mailto:")
+                                ? "Écrire un e-mail"
+                                : "Appeler"}
+                            </a>
+                          )}
+                          {websiteHref && (
+                            <a
+                              href={websiteHref}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                              aria-label={`Site web de ${resource.name} (nouvel onglet)`}
+                            >
+                              Site web
+                              <ExternalLink size={15} aria-hidden="true" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+            {!visible.length && (
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-12 px-6 text-center">
+                <Search
+                  size={30}
+                  className="mx-auto text-slate-400"
+                  aria-hidden="true"
+                />
+                <h3 className="mt-4 font-semibold text-slate-900">
+                  {resources.length
+                    ? "Aucun contact ne correspond"
+                    : "Aucun contact disponible pour le moment"}
+                </h3>
+                <p className="mt-2 text-sm text-slate-500">
+                  {resources.length
+                    ? "Essayez un autre mot-clé ou un autre type de service."
+                    : "Vous pouvez consulter les autres pays de l’annuaire."}
+                </p>
+              </div>
+            )}
+          </>
+        )}
+      </section>
+      <section
+        className="mx-auto mt-12 max-w-7xl px-4 sm:px-6 lg:px-8"
+        aria-labelledby="next-step-title"
+      >
+        <div className="grid overflow-hidden rounded-[2rem] bg-slate-900 text-white lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="p-6 sm:p-9">
+            <p className="text-xs font-semibold uppercase tracking-widest text-orange-300">
+              Pour préparer votre échange
+            </p>
+            <h2 id="next-step-title" className="mt-3 text-2xl font-bold">
+              Un premier contact,
+              <br />à votre rythme.
+            </h2>
+            <p className="mt-4 max-w-lg text-sm leading-relaxed text-slate-300">
+              Vous pouvez commencer par demander quels services sont proposés, à
+              quels horaires et selon quelles modalités de confidentialité.
+            </p>
+          </div>
+          <div className="border-t border-white/10 bg-white/5 p-6 sm:p-9 lg:border-l lg:border-t-0">
+            <HeartHandshake
+              size={26}
+              className="text-orange-300"
+              aria-hidden="true"
+            />
+            <h3 className="mt-3 text-lg font-semibold">
+              Faire le point sur votre relation
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-slate-300">
+              Le violentomètre propose des repères pour mieux comprendre votre
+              situation.
+            </p>
+            <Link
+              href="/diagnostic"
+              className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-orange-300 hover:text-orange-200"
+            >
+              Découvrir le diagnostic
+              <ArrowRight size={17} aria-hidden="true" />
             </Link>
-          </motion.div>
+          </div>
         </div>
       </section>
     </div>

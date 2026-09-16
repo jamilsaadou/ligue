@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
@@ -11,7 +12,9 @@ import {
   Settings,
   BarChart3,
   LogOut,
-  Shield
+  Shield,
+  Menu,
+  X
 } from 'lucide-react';
 import { hasAdminModule, type AdminModuleKey } from '@/lib/admin-modules';
 
@@ -38,14 +41,15 @@ export default function AdminSidebar({
   adminModules: readonly string[];
 }) {
   const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
   const visibleItems = NAV_ITEMS.filter(
     (item) => !item.module || hasAdminModule(role, adminModules, item.module)
   );
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="lg:h-full flex flex-col">
       {/* Header */}
-      <div className="p-7 border-b border-slate-800">
+      <div className="flex items-center justify-between gap-3 p-4 lg:p-7 border-b border-slate-800">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-[#eb5f2a] flex items-center justify-center">
             <Shield className="w-5 h-5 text-white" />
@@ -57,10 +61,21 @@ export default function AdminSidebar({
             </div>
           </div>
         </div>
+        <button
+          type="button"
+          className="lg:hidden rounded-lg p-3 text-white hover:bg-slate-800"
+          aria-label={isOpen ? 'Fermer le menu administration' : 'Ouvrir le menu administration'}
+          aria-expanded={isOpen}
+          aria-controls="admin-navigation"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
       </div>
 
+      <div id="admin-navigation" className={`${isOpen ? 'flex' : 'hidden'} min-h-0 flex-1 flex-col lg:flex`}>
       {/* Navigation */}
-      <nav className="flex-1 p-5 space-y-2 overflow-y-auto">
+      <nav aria-label="Administration" className="flex-1 p-5 space-y-2 overflow-y-auto">
         <div className="text-xs uppercase tracking-wider text-slate-500 px-3 py-2">
           Menu principal
         </div>
@@ -75,6 +90,8 @@ export default function AdminSidebar({
             <Link
               key={item.href}
               href={item.href}
+              aria-current={active ? 'page' : undefined}
+              onClick={() => setIsOpen(false)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 active
                   ? 'bg-[#eb5f2a] text-white shadow-lg shadow-[#eb5f2a]/25'
@@ -97,6 +114,7 @@ export default function AdminSidebar({
           <LogOut className="w-5 h-5" />
           Retour au site
         </Link>
+      </div>
       </div>
     </div>
   );

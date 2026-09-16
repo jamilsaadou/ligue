@@ -131,6 +131,8 @@ body {
 }
 
 .glass-input {
+  min-width: 0;
+  max-width: 100%;
   background: #ffffff;
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -360,7 +362,8 @@ body {
     border-radius: 16px;
   }
 
-  .glass-button {
+  .glass-button,
+  .glass-button-outline {
     padding: 12px 24px;
     font-size: 14px;
   }
@@ -372,8 +375,8 @@ body {
   .emergency-button {
     width: 50px;
     height: 50px;
-    bottom: 20px;
-    right: 20px;
+    bottom: max(20px, env(safe-area-inset-bottom));
+    right: max(20px, env(safe-area-inset-right));
   }
 }
 
@@ -398,4 +401,14 @@ body {
 /* Smooth transitions for all interactive elements */
 a, button {
   transition: all 0.2s ease;
+}
+
+/* Keep wide tables and charts inside their own scroll containers. */
+.admin-content :where(.grid, .flex) > * {
+  min-width: 0;
+}
+
+:where(a, button, select):focus-visible {
+  outline: 2px solid var(--primary-dark);
+  outline-offset: 3px;
 }

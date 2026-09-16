@@ -37,18 +37,18 @@ export default async function AdminLayout({
         }
       `}</style>
 
-      <div className="fixed inset-0 flex bg-slate-100">
+      <div className="fixed inset-0 flex h-dvh flex-col lg:flex-row bg-slate-100">
         {/* Sidebar fixe à gauche */}
-        <aside className="w-64 flex-shrink-0 bg-slate-900 text-white shadow-xl overflow-y-auto">
+        <aside className="w-full lg:w-64 max-h-[60dvh] lg:max-h-none flex-shrink-0 bg-slate-900 text-white shadow-xl overflow-y-auto">
           <AdminSidebar role={session.role} adminModules={session.adminModules} />
         </aside>
 
         {/* Contenu principal */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="w-full max-w-[1600px] mx-auto p-6 lg:p-10 space-y-10">
+        <div role="region" aria-label="Contenu de l’administration" className="min-h-0 min-w-0 flex-1 overflow-y-auto">
+          <div className="admin-content w-full max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8 space-y-10">
             {children}
           </div>
-        </main>
+        </div>
       </div>
     </div>
   );

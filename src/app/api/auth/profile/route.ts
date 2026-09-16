@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { COUNTRIES, JOIN_REASON_IDS } from '@/data/onboarding';
 
 export async function GET() {
   try {
@@ -17,6 +18,10 @@ export async function GET() {
         email: true,
         name: true,
         role: true,
+        countryCode: true,
+        phone: true,
+        joinReasons: true,
+        onboardedAt: true,
         createdAt: true,
         _count: { select: { submissions: true, attempts: true } },
         submissions: {
@@ -53,7 +58,7 @@ export async function PUT(request: Request) {
     }
 
     const payload = await request.json();
-    const { name, currentPassword, newPassword } = payload;
+    const { name, currentPassword, newPassword, countryCode, phoneNational, joinReasons } = payload;
 
     const user = await prisma.user.findUnique({
       where: { id: session.id }
@@ -63,11 +68,45 @@ export async function PUT(request: Request) {
       return NextResponse.json({ ok: false, message: 'Utilisateur non trouvé.' }, { status: 404 });
     }
 
-    const updateData: { name?: string; passwordHash?: string } = {};
+    const updateData: {
+      name?: string | null;
+      passwordHash?: string;
+      countryCode?: string;
+      phone?: string;
+      joinReasons?: string[];
+    } = {};
 
     // Update name if provided
     if (name !== undefined) {
       updateData.name = name?.trim() || null;
+    }
+
+    // Update country + phone (l'indicatif est dérivé du pays côté serveur).
+    if (countryCode !== undefined) {
+      const country = COUNTRIES.find((item) => item.code === countryCode);
+      if (!country) {
+        return NextResponse.json(
+          { ok: false, message: 'Pays invalide.' },
+          { status: 400 }
+        );
+      }
+      updateData.countryCode = country.code;
+
+      const nationalDigits = (phoneNational || '').replace(/\D/g, '');
+      if (nationalDigits.length < 6 || nationalDigits.length > 15) {
+        return NextResponse.json(
+          { ok: false, message: 'Numéro de téléphone invalide.' },
+          { status: 400 }
+        );
+      }
+      updateData.phone = `${country.dialCode} ${nationalDigits}`;
+    }
+
+    // Update join reasons if provided
+    if (joinReasons !== undefined) {
+      updateData.joinReasons = Array.isArray(joinReasons)
+        ? joinReasons.filter((reason: string) => JOIN_REASON_IDS.includes(reason))
+        : [];
     }
 
     // Update password if provided
