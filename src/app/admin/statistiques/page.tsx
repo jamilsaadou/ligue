@@ -293,7 +293,7 @@ export default async function AdminStatsPage({
       {
         label: "Pour un proche",
         value: number(summary?.other),
-        color: "#eb5f2a",
+        color: "#f15b24",
       },
       {
         label: "Non renseigné",

@@ -403,34 +403,6 @@ const resources = [
       { name: "Ministère de la Promotion de la Femme", type: "institution" as ResourceType, contact: "+227 20 72 29 83" },
       { name: "Police Secours", type: "urgence" as ResourceType, contact: "17" }
     ]
-  },
-  {
-    country: { name: "Mali", code: "ML", emergencyNumber: "17" },
-    resources: [
-      { name: "AJM - Association des Juristes Maliennes", type: "association" as ResourceType, contact: "+223 20 22 49 95" },
-      { name: "Police Secours", type: "urgence" as ResourceType, contact: "17" }
-    ]
-  },
-  {
-    country: { name: "Burkina Faso", code: "BF", emergencyNumber: "17" },
-    resources: [
-      { name: "Association Voix de Femmes", type: "association" as ResourceType, contact: "+226 25 31 32 95" },
-      { name: "Police Secours", type: "urgence" as ResourceType, contact: "17" }
-    ]
-  },
-  {
-    country: { name: "Sénégal", code: "SN", emergencyNumber: "17" },
-    resources: [
-      { name: "AJS - Association des Juristes Sénégalaises", type: "association" as ResourceType, contact: "+221 33 824 42 09" },
-      { name: "Police Secours", type: "urgence" as ResourceType, contact: "17" }
-    ]
-  },
-  {
-    country: { name: "Côte d'Ivoire", code: "CI", emergencyNumber: "110" },
-    resources: [
-      { name: "AFJCI - Association des Femmes Juristes", type: "association" as ResourceType, contact: "+225 22 44 63 18" },
-      { name: "Police Secours", type: "urgence" as ResourceType, contact: "110" }
-    ]
   }
 ];
 

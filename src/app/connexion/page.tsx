@@ -61,7 +61,7 @@ export default function ConnexionPage() {
       >
         <div className="glass-card p-7 md:p-10">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#eb5f2a] to-[#d14d1a] flex items-center justify-center mx-auto mb-5">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#f15b24] to-[#d14d1a] flex items-center justify-center mx-auto mb-5">
               <Lock className="w-7 h-7 text-white" />
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
@@ -128,10 +128,10 @@ export default function ConnexionPage() {
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500">
             <span>Vous n’avez pas de compte ?</span>
             <div className="flex items-center gap-4">
-              <Link href="/inscription" className="text-[#eb5f2a] font-medium hover:underline">
+              <Link href="/inscription" className="text-[#f15b24] font-medium hover:underline">
                 Créer un compte
               </Link>
-              <Link href="/" className="text-[#eb5f2a] font-medium hover:underline">
+              <Link href="/" className="text-[#f15b24] font-medium hover:underline">
                 Retour à l’accueil
               </Link>
             </div>

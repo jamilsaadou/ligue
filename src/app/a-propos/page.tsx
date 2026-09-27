@@ -36,7 +36,7 @@ export default function AboutPage() {
     {
       icon: Globe,
       title: "Impact",
-      description: "Une vision régionale pour toucher toute l'Afrique de l'Ouest"
+      description: "Un engagement local pour toucher les communautés du Niger"
     }
   ];
 
@@ -59,12 +59,12 @@ export default function AboutPage() {
     {
       date: "2024",
       title: "Lancement ALERTE VIOLENCE",
-      description: "Première plateforme numérique d'autodiagnostic en Afrique de l'Ouest"
+      description: "Première plateforme numérique d'autodiagnostic au Niger"
     }
   ];
 
   const objectives = [
-    "Promouvoir les droits des femmes au Niger et en Afrique de l'Ouest",
+    "Promouvoir les droits des femmes au Niger",
     "Offrir un soutien aux survivantes des violences",
     "Permettre aux victimes de s'exprimer et d'être crues",
     "Assurer une prise en charge bienveillante et confidentielle",
@@ -85,10 +85,10 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#eb5f2a]/5 via-white to-slate-50">
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#f15b24]/5 via-white to-slate-50">
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#eb5f2a]/10 rounded-full blur-3xl" />
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#eb5f2a]/5 rounded-full blur-3xl" />
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#f15b24]/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#f15b24]/5 rounded-full blur-3xl" />
         </div>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative">
           <motion.div
@@ -97,13 +97,13 @@ export default function AboutPage() {
             animate={{ opacity: 1, y: 0 }}
           >
             <motion.div
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur border border-[#eb5f2a]/20 shadow-sm mb-8"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur border border-[#f15b24]/20 shadow-sm mb-8"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
             >
-              <Users className="w-4 h-4 shrink-0 text-[#eb5f2a]" aria-hidden="true" />
-              <span className="text-[#eb5f2a] text-sm font-medium">À propos de nous</span>
+              <Users className="w-4 h-4 shrink-0 text-[#f15b24]" aria-hidden="true" />
+              <span className="text-[#f15b24] text-sm font-medium">À propos de nous</span>
             </motion.div>
 
             <h1 className="text-4xl md:text-5xl font-bold text-slate-900 leading-tight mb-6">
@@ -129,7 +129,7 @@ export default function AboutPage() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#eb5f2a]/10 text-[#eb5f2a] text-sm font-medium mb-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f15b24]/10 text-[#f15b24] text-sm font-medium mb-6">
                 <Heart className="w-4 h-4" />
                 Notre mission
               </div>
@@ -156,8 +156,8 @@ export default function AboutPage() {
                     viewport={{ once: true }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <div className="w-6 h-6 rounded-full bg-[#eb5f2a]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <CheckCircle className="w-4 h-4 text-[#eb5f2a]" />
+                    <div className="w-6 h-6 rounded-full bg-[#f15b24]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <CheckCircle className="w-4 h-4 text-[#f15b24]" />
                     </div>
                     <span className="text-slate-700 leading-relaxed">{objective}</span>
                   </motion.div>
@@ -172,7 +172,7 @@ export default function AboutPage() {
               viewport={{ once: true }}
             >
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#eb5f2a]/20 to-[#eb5f2a]/5 rounded-3xl transform rotate-3" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[#f15b24]/20 to-[#f15b24]/5 rounded-3xl transform rotate-3" />
                 <div className="relative bg-white rounded-3xl shadow-xl p-8 border border-slate-100">
                   <div className="grid grid-cols-2 gap-6">
                     {[
@@ -189,7 +189,7 @@ export default function AboutPage() {
                         viewport={{ once: true }}
                         transition={{ delay: index * 0.1 }}
                       >
-                        <div className="text-3xl md:text-4xl font-bold text-[#eb5f2a] mb-1">{stat.number}</div>
+                        <div className="text-3xl md:text-4xl font-bold text-[#f15b24] mb-1">{stat.number}</div>
                         <div className="text-slate-500 text-sm">{stat.label}</div>
                       </motion.div>
                     ))}
@@ -210,7 +210,7 @@ export default function AboutPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#eb5f2a]/10 text-[#eb5f2a] text-sm font-medium mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f15b24]/10 text-[#f15b24] text-sm font-medium mb-4">
               <Users className="w-4 h-4 shrink-0" aria-hidden="true" />
               Nos valeurs
             </div>
@@ -226,13 +226,13 @@ export default function AboutPage() {
             {values.map((value, index) => (
               <motion.div
                 key={index}
-                className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-lg hover:border-[#eb5f2a]/20 transition-all duration-300 group"
+                className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-lg hover:border-[#f15b24]/20 transition-all duration-300 group"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
               >
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#eb5f2a] to-[#d54d1a] flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#f15b24] to-[#d54d1a] flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
                   <value.icon className="w-7 h-7 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-slate-900 mb-3">{value.title}</h3>
@@ -252,7 +252,7 @@ export default function AboutPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#eb5f2a]/10 text-[#eb5f2a] text-sm font-medium mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f15b24]/10 text-[#f15b24] text-sm font-medium mb-4">
               <Calendar className="w-4 h-4" />
               Notre parcours
             </div>
@@ -263,7 +263,7 @@ export default function AboutPage() {
 
           <div className="relative">
             {/* Timeline line */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-gradient-to-b from-[#eb5f2a] via-[#eb5f2a]/50 to-slate-200 hidden md:block" />
+            <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-gradient-to-b from-[#f15b24] via-[#f15b24]/50 to-slate-200 hidden md:block" />
 
             <div className="space-y-8 md:space-y-0">
               {milestones.map((milestone, index) => (
@@ -279,7 +279,7 @@ export default function AboutPage() {
                 >
                   <div className={`flex-1 md:px-8 ${index % 2 === 0 ? 'md:text-right' : 'md:text-left'}`}>
                     <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow inline-block">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#eb5f2a]/10 text-[#eb5f2a] text-sm font-medium mb-3">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f15b24]/10 text-[#f15b24] text-sm font-medium mb-3">
                         <Calendar className="w-3.5 h-3.5" />
                         {milestone.date}
                       </div>
@@ -289,7 +289,7 @@ export default function AboutPage() {
                   </div>
 
                   <div className="relative z-10 hidden md:flex items-center justify-center">
-                    <div className="w-5 h-5 rounded-full bg-[#eb5f2a] border-4 border-white shadow-md" />
+                    <div className="w-5 h-5 rounded-full bg-[#f15b24] border-4 border-white shadow-md" />
                   </div>
 
                   <div className="flex-1 hidden md:block" />
@@ -301,7 +301,7 @@ export default function AboutPage() {
       </section>
 
       {/* ALERTE VIOLENCE Project Section */}
-      <section className="bg-gradient-to-br from-[#eb5f2a]/5 via-white to-slate-50">
+      <section className="bg-gradient-to-br from-[#f15b24]/5 via-white to-slate-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <motion.div
             className="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden"
@@ -311,7 +311,7 @@ export default function AboutPage() {
           >
             <div className="grid md:grid-cols-2 gap-0">
               <div className="p-8 md:p-12">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#eb5f2a]/10 text-[#eb5f2a] text-sm font-medium mb-6">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f15b24]/10 text-[#f15b24] text-sm font-medium mb-6">
                   <Award className="w-4 h-4" />
                   Projet phare
                 </div>
@@ -320,14 +320,14 @@ export default function AboutPage() {
                 </h2>
                 <p className="text-slate-600 leading-relaxed mb-6">
                   Notre plateforme numérique d&apos;autodiagnostic est une innovation majeure :
-                  aucun outil similaire n&apos;existe dans la sous-région. ALERTE VIOLENCE comble
+                  aucun outil similaire n&apos;existe au Niger. ALERTE VIOLENCE comble
                   un vide crucial et répond à un besoin massif de plus de 200 millions de personnes
-                  en Afrique de l&apos;Ouest.
+                  au Niger.
                 </p>
                 <ul className="space-y-3 mb-8">
                   {[
-                    "Première plateforme d'autodiagnostic en Afrique de l'Ouest",
-                    "Couverture de 8 pays francophones",
+                    "Première plateforme d'autodiagnostic au Niger",
+                    "Accompagnement au Niger",
                     "Objectif : 100 000+ utilisateurs en 3 ans",
                     "Orientation vers 10 000+ structures d'aide"
                   ].map((item, index) => (
@@ -339,21 +339,21 @@ export default function AboutPage() {
                       viewport={{ once: true }}
                       transition={{ delay: index * 0.1 }}
                     >
-                      <CheckCircle className="w-5 h-5 text-[#eb5f2a] flex-shrink-0 mt-0.5" />
+                      <CheckCircle className="w-5 h-5 text-[#f15b24] flex-shrink-0 mt-0.5" />
                       {item}
                     </motion.li>
                   ))}
                 </ul>
                 <Link
                   href="/diagnostic"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#eb5f2a] text-white font-medium rounded-xl hover:bg-[#d54d1a] transition-colors shadow-lg shadow-[#eb5f2a]/25"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#f15b24] text-white font-medium rounded-xl hover:bg-[#d54d1a] transition-colors shadow-lg shadow-[#f15b24]/25"
                 >
                   Faire le diagnostic
                   <ArrowRight className="w-5 h-5" />
                 </Link>
               </div>
 
-              <div className="bg-gradient-to-br from-[#eb5f2a]/10 to-slate-100 p-8 md:p-12 flex items-center">
+              <div className="bg-gradient-to-br from-[#f15b24]/10 to-slate-100 p-8 md:p-12 flex items-center">
                 <div className="grid grid-cols-2 gap-6 w-full">
                   {[
                     { number: "38", label: "Questions" },
@@ -369,7 +369,7 @@ export default function AboutPage() {
                       viewport={{ once: true }}
                       transition={{ delay: index * 0.1 }}
                     >
-                      <div className="text-3xl md:text-4xl font-bold text-[#eb5f2a] mb-1">{stat.number}</div>
+                      <div className="text-3xl md:text-4xl font-bold text-[#f15b24] mb-1">{stat.number}</div>
                       <div className="text-slate-600 text-sm">{stat.label}</div>
                     </motion.div>
                   ))}
@@ -389,7 +389,7 @@ export default function AboutPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#eb5f2a]/10 text-[#eb5f2a] text-sm font-medium mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f15b24]/10 text-[#f15b24] text-sm font-medium mb-4">
               <Users className="w-4 h-4" />
               Nos partenaires
             </div>
@@ -397,8 +397,8 @@ export default function AboutPage() {
               Ils nous soutiennent
             </h2>
             <div className="max-w-2xl mx-auto">
-              <p className="text-lg text-slate-700 leading-relaxed font-medium bg-gradient-to-r from-[#eb5f2a]/10 to-[#eb5f2a]/5 px-8 py-5 rounded-2xl border border-[#eb5f2a]/15">
-                Cette initiative est portée par la <span className="text-[#eb5f2a] font-semibold">Ligue</span> avec le soutien de plusieurs partenaires engagés
+              <p className="text-lg text-slate-700 leading-relaxed font-medium bg-gradient-to-r from-[#f15b24]/10 to-[#f15b24]/5 px-8 py-5 rounded-2xl border border-[#f15b24]/15">
+                Cette initiative est portée par la <span className="text-[#f15b24] font-semibold">Ligue</span> avec le soutien de plusieurs partenaires engagés
               </p>
             </div>
           </motion.div>
@@ -412,7 +412,7 @@ export default function AboutPage() {
             {partners.map((partner, index) => (
               <motion.div
                 key={index}
-                className="bg-slate-50 hover:bg-white rounded-2xl p-6 flex items-center justify-center border border-slate-100 hover:border-[#eb5f2a]/20 hover:shadow-lg transition-all duration-300 aspect-[4/3]"
+                className="bg-slate-50 hover:bg-white rounded-2xl p-6 flex items-center justify-center border border-slate-100 hover:border-[#f15b24]/20 hover:shadow-lg transition-all duration-300 aspect-[4/3]"
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
@@ -441,7 +441,7 @@ export default function AboutPage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#eb5f2a]/10 text-[#eb5f2a] text-sm font-medium mb-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f15b24]/10 text-[#f15b24] text-sm font-medium mb-6">
               <Mail className="w-4 h-4" />
               Contact
             </div>
@@ -455,14 +455,14 @@ export default function AboutPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
                 href="mailto:lndf.niger@gmail.com"
-                className="inline-flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-[#eb5f2a] text-white font-medium hover:bg-[#d54d1a] transition-colors shadow-lg shadow-[#eb5f2a]/25"
+                className="inline-flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-[#f15b24] text-white font-medium hover:bg-[#d54d1a] transition-colors shadow-lg shadow-[#f15b24]/25"
               >
                 <Mail className="w-5 h-5" />
                 lndf.niger@gmail.com
               </a>
 
               <div className="inline-flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-slate-100 text-slate-700">
-                <MapPin className="w-5 h-5 text-[#eb5f2a]" />
+                <MapPin className="w-5 h-5 text-[#f15b24]" />
                 Niamey, Niger
               </div>
             </div>

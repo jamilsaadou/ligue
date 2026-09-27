@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import barometres from "@/data/barometres.json";
+import SupportContacts from "@/components/SupportContacts";
 import {
   ArrowDown,
   ArrowRight,
@@ -16,7 +18,6 @@ import {
   MapPin,
   Phone,
   Search,
-  Shield,
   Users,
   X,
 } from "lucide-react";
@@ -74,7 +75,6 @@ function websiteLink(website: string | null) {
 
 export default function ResourcesPage() {
   const [countries, setCountries] = useState<Country[]>([]);
-  const [countryId, setCountryId] = useState("");
   const [search, setSearch] = useState("");
   const [type, setType] = useState("all");
   const [loading, setLoading] = useState(true);
@@ -89,15 +89,7 @@ export default function ResourcesPage() {
         if (!data.ok || !Array.isArray(data.countries))
           throw new Error("Invalid resources");
         if (controller.signal.aborted) return;
-        setCountries(data.countries);
-        setCountryId((current) =>
-          data.countries.some((country: Country) => country.id === current)
-            ? current
-            : data.countries.find((country: Country) => country.code === "NE")
-                ?.id ||
-              data.countries[0]?.id ||
-              "",
-        );
+        setCountries(data.countries.filter((country: Country) => country.code === "NE"));
         setError(false);
         setLoading(false);
       })
@@ -109,7 +101,7 @@ export default function ResourcesPage() {
       });
     return () => controller.abort();
   }, [retry]);
-  const selected = countries.find((country) => country.id === countryId);
+  const selected = countries.find((country) => country.code === "NE");
   const resources = selected?.resources || [];
   const visible = resources.filter(
     (resource) =>
@@ -118,12 +110,6 @@ export default function ResourcesPage() {
         `${resource.name} ${resource.description || ""} ${resource.address || ""} ${resource.contact}`,
       ).includes(normalize(search)),
   );
-  const emergencyLink = selected?.emergencyNumber
-    ? contactLink(selected.emergencyNumber)
-    : null;
-  const coveredCountries = countries.filter(
-    (country) => country.resources.length > 0,
-  ).length;
   const totalResources = countries.reduce(
     (sum, country) => sum + country.resources.length,
     0,
@@ -147,7 +133,7 @@ export default function ResourcesPage() {
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">
               Trouvez une association, un service d’écoute ou une structure
-              d’accompagnement dans votre pays.
+              d’accompagnement au Niger.
             </p>
             <a
               href="#trouver-une-ressource"
@@ -196,7 +182,7 @@ export default function ResourcesPage() {
                 {
                   icon: Building2,
                   title: "Trouver un interlocuteur",
-                  text: "Identifiez les structures à contacter dans votre pays.",
+                  text: "Identifiez les structures à contacter au Niger.",
                 },
               ].map(({ icon: Icon, title, text }) => (
                 <div key={title} className="flex gap-3">
@@ -240,34 +226,12 @@ export default function ResourcesPage() {
             <p className="flex items-center gap-2 text-sm text-slate-500">
               <Globe2 size={17} aria-hidden="true" />
               {totalResources} ressource{totalResources > 1 ? "s" : ""} ·{" "}
-              {coveredCountries} pays couvert{coveredCountries > 1 ? "s" : ""}
+              Niger
             </p>
           )}
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-          <div className="grid gap-4 md:grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)]">
-            <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-slate-700">
-                Votre pays
-              </span>
-              <select
-                value={countryId}
-                onChange={(event) => setCountryId(event.target.value)}
-                disabled={loading || !countries.length}
-                className="glass-input min-h-12 w-full disabled:opacity-60"
-              >
-                {!countries.length && (
-                  <option value="">
-                    {loading ? "Chargement des pays…" : "Aucun pays disponible"}
-                  </option>
-                )}
-                {countries.map((country) => (
-                  <option key={country.id} value={country.id}>
-                    {country.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+          <div className="grid gap-4 md:grid-cols-1">
             <label className="block">
               <span className="mb-2 block text-sm font-semibold text-slate-700">
                 Rechercher un contact
@@ -306,32 +270,7 @@ export default function ResourcesPage() {
             ))}
           </div>
         </div>
-        {selected && emergencyLink?.startsWith("tel:") && (
-          <aside className="mt-5 flex flex-col gap-4 rounded-2xl border border-red-200 bg-red-50 p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex gap-3">
-              <Shield
-                size={22}
-                className="mt-0.5 shrink-0 text-red-700"
-                aria-hidden="true"
-              />
-              <div>
-                <h3 className="font-semibold text-red-900">
-                  Besoin des secours ?
-                </h3>
-                <p className="mt-1 text-sm text-red-800">
-                  Numéro d’urgence renseigné pour {selected.name}.
-                </p>
-              </div>
-            </div>
-            <a
-              href={emergencyLink}
-              className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-red-700 px-5 py-3 text-sm font-semibold text-white hover:bg-red-800"
-            >
-              <Phone size={17} aria-hidden="true" />
-              Appeler le {selected.emergencyNumber}
-            </a>
-          </aside>
-        )}
+
         {loading ? (
           <div role="status" className="py-12 text-center text-slate-500">
             Chargement des contacts…
@@ -478,13 +417,25 @@ export default function ResourcesPage() {
                 <p className="mt-2 text-sm text-slate-500">
                   {resources.length
                     ? "Essayez un autre mot-clé ou un autre type de service."
-                    : "Vous pouvez consulter les autres pays de l’annuaire."}
+                    : "Les contacts de la clinique et les secours figurent ci-dessus."}
                 </p>
               </div>
             )}
           </>
         )}
       </section>
+      <section id="barometres" className="page-container scroll-mt-28 py-12" aria-labelledby="barometres-title">
+        <h2 id="barometres-title" className="text-3xl font-bold text-slate-900">Tous les baromètres</h2>
+        <p className="mt-3 text-slate-600">Des repères à consulter librement, sans compte et à votre rythme.</p>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {barometres.map((tool) => <Link key={tool.slug} href={`/ressources/${tool.slug}`} className="rounded-2xl border border-orange-200 bg-white p-6 hover:bg-orange-50">
+            <p className="text-sm font-semibold text-orange-800">{tool.statements.length} situations</p>
+            <h3 className="mt-2 text-xl font-bold text-slate-900">{tool.title}</h3>
+            <span className="mt-4 inline-flex text-sm font-semibold text-orange-800">Consulter l’outil complet →</span>
+          </Link>)}
+        </div>
+      </section>
+      <section className="page-container pb-12"><SupportContacts /></section>
       <section
         className="mx-auto mt-12 max-w-7xl px-4 sm:px-6 lg:px-8"
         aria-labelledby="next-step-title"

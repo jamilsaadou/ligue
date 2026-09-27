@@ -80,7 +80,7 @@ export default function OnboardingPage() {
       >
         <div className="glass-card p-7 md:p-10">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#eb5f2a] to-[#d14d1a] flex items-center justify-center mx-auto mb-5">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#f15b24] to-[#d14d1a] flex items-center justify-center mx-auto mb-5">
               <CheckCircle2 className="w-7 h-7 text-white" />
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
@@ -162,13 +162,13 @@ export default function OnboardingPage() {
                       key={reason.id}
                       className={`flex items-center gap-3 rounded-xl border p-3 cursor-pointer transition-all ${
                         checked
-                          ? 'border-[#eb5f2a] bg-[#eb5f2a]/5'
+                          ? 'border-[#f15b24] bg-[#f15b24]/5'
                           : 'border-slate-200 hover:border-slate-300'
                       }`}
                     >
                       <input
                         type="checkbox"
-                        className="h-4 w-4 accent-[#eb5f2a]"
+                        className="h-4 w-4 accent-[#f15b24]"
                         checked={checked}
                         onChange={() => toggleReason(reason.id)}
                       />

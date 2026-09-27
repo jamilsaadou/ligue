@@ -450,8 +450,8 @@ export default function DiagnosticBuilder({
                           onClick={() => updateCategory(categoryIndex, { icon: name })}
                           className={`flex min-h-[82px] flex-col items-center justify-center gap-2 rounded-xl border px-3 py-3 text-center transition-all ${
                             isSelected
-                              ? 'border-[#eb5f2a] bg-[#eb5f2a]/10 text-[#eb5f2a] shadow-sm'
-                              : 'border-slate-200 bg-white text-slate-600 hover:border-[#eb5f2a]/40 hover:text-[#eb5f2a]'
+                              ? 'border-[#f15b24] bg-[#f15b24]/10 text-[#f15b24] shadow-sm'
+                              : 'border-slate-200 bg-white text-slate-600 hover:border-[#f15b24]/40 hover:text-[#f15b24]'
                           }`}
                         >
                           <Icon className="w-6 h-6" />
@@ -540,7 +540,7 @@ export default function DiagnosticBuilder({
                     ))}
                     <button
                       type="button"
-                      className="text-sm text-[#eb5f2a] flex items-center gap-2"
+                      className="text-sm text-[#f15b24] flex items-center gap-2"
                       onClick={() => addOption(categoryIndex, questionIndex)}
                     >
                       <Plus className="w-4 h-4" />
@@ -551,7 +551,7 @@ export default function DiagnosticBuilder({
               ))}
               <button
                 type="button"
-                className="text-sm text-[#eb5f2a] flex items-center gap-2"
+                className="text-sm text-[#f15b24] flex items-center gap-2"
                 onClick={() => addQuestion(categoryIndex)}
               >
                 <Plus className="w-4 h-4" />

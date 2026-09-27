@@ -485,7 +485,7 @@ export default async function AdminLogsPage({
                 href={pageHref(pageNumber, type, query)}
                 aria-label={`Page ${pageNumber}`}
                 aria-current={pageNumber === safePage ? "page" : undefined}
-                className={`inline-flex h-11 min-w-9 items-center justify-center rounded-xl text-sm font-semibold ${pageNumber === safePage ? "bg-[#eb5f2a] text-white" : "text-slate-600 hover:bg-slate-100"}`}
+                className={`inline-flex h-11 min-w-9 items-center justify-center rounded-xl text-sm font-semibold ${pageNumber === safePage ? "bg-[#f15b24] text-white" : "text-slate-600 hover:bg-slate-100"}`}
               >
                 {pageNumber}
               </Link>
@@ -515,7 +515,7 @@ function SummaryCard({
 }) {
   return (
     <div className="glass-card p-5">
-      <Icon size={20} className="mb-3 text-[#eb5f2a]" aria-hidden="true" />
+      <Icon size={20} className="mb-3 text-[#f15b24]" aria-hidden="true" />
       <p className="text-2xl font-bold text-slate-900">{value}</p>
       <p className="mt-1 text-sm text-slate-500">{label}</p>
     </div>

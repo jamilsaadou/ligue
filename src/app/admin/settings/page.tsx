@@ -36,6 +36,13 @@ export default async function AdminSettingsPage() {
             (settingsMap.supportEmail as string) || DEFAULT_SITE_CONFIG.supportEmail,
           supportPhone:
             (settingsMap.supportPhone as string) || DEFAULT_SITE_CONFIG.supportPhone,
+          clinicWhatsapp: (settingsMap.clinicWhatsapp as string) || '',
+          clinicPsychologistPhone: (settingsMap.clinicPsychologistPhone as string) || '',
+          clinicCaseManagerPhone: (settingsMap.clinicCaseManagerPhone as string) || '',
+          facebookUrl: (settingsMap.facebookUrl as string) || '',
+          instagramUrl: (settingsMap.instagramUrl as string) || '',
+          twitterUrl: (settingsMap.twitterUrl as string) || '',
+          youtubeUrl: (settingsMap.youtubeUrl as string) || '',
           siteLocation:
             (settingsMap.siteLocation as string) || DEFAULT_SITE_CONFIG.siteLocation,
           emergencyNumber:

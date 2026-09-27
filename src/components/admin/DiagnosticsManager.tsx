@@ -106,7 +106,7 @@ export default function DiagnosticsManager({
           <div key={label} className="glass-card p-4 sm:p-5">
             <Icon
               size={20}
-              className="mb-3 text-[#eb5f2a]"
+              className="mb-3 text-[#f15b24]"
               aria-hidden="true"
             />
             <p className="text-2xl font-bold text-slate-900">{value}</p>
@@ -181,7 +181,7 @@ export default function DiagnosticsManager({
               <h2 className="mt-3 break-words text-lg font-semibold text-slate-900">
                 <Link
                   href={`/admin/diagnostics/${item.id}/details`}
-                  className="hover:text-[#eb5f2a]"
+                  className="hover:text-[#f15b24]"
                 >
                   {item.title}
                 </Link>
@@ -247,7 +247,7 @@ export default function DiagnosticsManager({
                   setSearch("");
                   setStatus("all");
                 }}
-                className="mt-4 text-sm font-semibold text-[#eb5f2a]"
+                className="mt-4 text-sm font-semibold text-[#f15b24]"
               >
                 Réinitialiser les filtres
               </button>

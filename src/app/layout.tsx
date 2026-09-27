@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Manrope } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -7,19 +7,25 @@ import EmergencyButton from "@/components/EmergencyButton";
 import TrackingProvider from "@/components/TrackingProvider";
 import { AuthProvider } from "@/components/AuthProvider";
 
-const manrope = Manrope({
-  subsets: ["latin"],
+const manrope = localFont({
+  src: "../../public/fonts/manrope-latin.woff2",
+  weight: "200 800",
+  display: "swap",
   variable: "--font-sans",
 });
 
 export const metadata: Metadata = {
+  icons: {
+    icon: { url: "/brand/favicon-ligue.png?v=2", type: "image/png", sizes: "512x512" },
+    apple: { url: "/brand/favicon-ligue.png?v=2", sizes: "512x512" },
+  },
   title: "ALERTE VIOLENCE - Violentomètre Numérique | LNDF Niger",
-  description: "Première plateforme numérique d'autodiagnostic des violences en Afrique de l'Ouest. Évaluez votre situation de manière anonyme et confidentielle.",
+  description: "Première plateforme numérique d'autodiagnostic des violences au Niger. Évaluez votre situation de manière anonyme et confidentielle.",
   keywords: ["violences", "femmes", "diagnostic", "aide", "Niger", "Afrique", "LNDF", "violentomètre"],
   authors: [{ name: "Ligue Nigérienne des Droits des Femmes" }],
   openGraph: {
     title: "ALERTE VIOLENCE - Violentomètre Numérique",
-    description: "Première plateforme numérique d'autodiagnostic des violences en Afrique de l'Ouest.",
+    description: "Première plateforme numérique d'autodiagnostic des violences au Niger.",
     type: "website",
     locale: "fr_FR",
   },

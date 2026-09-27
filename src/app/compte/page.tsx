@@ -214,7 +214,7 @@ export default function AccountPage() {
           className="glass-card p-6 sm:p-8"
         >
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#eb5f2a] to-[#d14d1a] flex items-center justify-center text-white text-xl font-bold">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#f15b24] to-[#d14d1a] flex items-center justify-center text-white text-xl font-bold">
               {(user.name || user.email.split('@')[0]).slice(0, 2).toUpperCase()}
             </div>
             <div>
@@ -239,7 +239,7 @@ export default function AccountPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
                     isActive
-                      ? 'bg-[#eb5f2a] text-white'
+                      ? 'bg-[#f15b24] text-white'
                       : 'text-slate-600 hover:bg-slate-100'
                   }`}
                 >
@@ -260,7 +260,7 @@ export default function AccountPage() {
           >
             <div className="grid grid-cols-2 border-y border-slate-200 mb-8 sm:grid-cols-3">
               <div className="py-5 pr-4 sm:border-r sm:border-slate-200">
-                <ClipboardCheck className="w-5 h-5 text-[#eb5f2a]" />
+                <ClipboardCheck className="w-5 h-5 text-[#f15b24]" />
                 <p className="mt-2 text-2xl font-bold text-slate-900">{user._count.submissions}</p>
                 <p className="text-xs font-medium text-slate-500">Diagnostics terminés</p>
               </div>
@@ -390,7 +390,7 @@ export default function AccountPage() {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Votre nom"
-                        className="w-full pl-12 pr-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-[#eb5f2a] focus:ring-2 focus:ring-[#eb5f2a]/20 transition-all outline-none"
+                        className="w-full pl-12 pr-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-[#f15b24] focus:ring-2 focus:ring-[#f15b24]/20 transition-all outline-none"
                       />
                     </div>
                   </div>
@@ -411,7 +411,7 @@ export default function AccountPage() {
                         id="country"
                         value={countryCode}
                         onChange={(e) => setCountryCode(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-[#eb5f2a] focus:ring-2 focus:ring-[#eb5f2a]/20 transition-all outline-none"
+                        className="w-full pl-12 pr-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-[#f15b24] focus:ring-2 focus:ring-[#f15b24]/20 transition-all outline-none"
                       >
                         <option value="">Non renseigné</option>
                         {COUNTRIES.map((country) => (
@@ -427,7 +427,7 @@ export default function AccountPage() {
                     <label htmlFor="phone" className="block text-sm font-medium text-slate-700 mb-2">
                       Numéro de téléphone
                     </label>
-                    <div className="relative flex items-center gap-2 rounded-xl bg-white border border-slate-200 focus-within:border-[#eb5f2a] focus-within:ring-2 focus-within:ring-[#eb5f2a]/20 transition-all pl-4">
+                    <div className="relative flex items-center gap-2 rounded-xl bg-white border border-slate-200 focus-within:border-[#f15b24] focus-within:ring-2 focus-within:ring-[#f15b24]/20 transition-all pl-4">
                       <Phone className="w-5 h-5 text-slate-400 flex-shrink-0" />
                       <span className="text-slate-500 font-medium whitespace-nowrap">
                         {selectedCountry ? selectedCountry.dialCode : '+—'}
@@ -463,13 +463,13 @@ export default function AccountPage() {
                         key={reason.id}
                         className={`flex items-center gap-3 rounded-xl border p-3 cursor-pointer transition-all ${
                           checked
-                            ? 'border-[#eb5f2a] bg-[#eb5f2a]/5'
+                            ? 'border-[#f15b24] bg-[#f15b24]/5'
                             : 'border-slate-200 hover:border-slate-300'
                         }`}
                       >
                         <input
                           type="checkbox"
-                          className="h-4 w-4 accent-[#eb5f2a]"
+                          className="h-4 w-4 accent-[#f15b24]"
                           checked={checked}
                           onChange={() => toggleReason(reason.id)}
                         />
@@ -496,7 +496,7 @@ export default function AccountPage() {
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
                         placeholder="Entrez votre mot de passe actuel"
-                        className="w-full pl-12 pr-12 py-3 rounded-xl bg-white border border-slate-200 focus:border-[#eb5f2a] focus:ring-2 focus:ring-[#eb5f2a]/20 transition-all outline-none"
+                        className="w-full pl-12 pr-12 py-3 rounded-xl bg-white border border-slate-200 focus:border-[#f15b24] focus:ring-2 focus:ring-[#f15b24]/20 transition-all outline-none"
                       />
                       <button
                         type="button"
@@ -520,7 +520,7 @@ export default function AccountPage() {
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         placeholder="Entrez un nouveau mot de passe"
-                        className="w-full pl-12 pr-12 py-3 rounded-xl bg-white border border-slate-200 focus:border-[#eb5f2a] focus:ring-2 focus:ring-[#eb5f2a]/20 transition-all outline-none"
+                        className="w-full pl-12 pr-12 py-3 rounded-xl bg-white border border-slate-200 focus:border-[#f15b24] focus:ring-2 focus:ring-[#f15b24]/20 transition-all outline-none"
                       />
                       <button
                         type="button"
@@ -545,7 +545,7 @@ export default function AccountPage() {
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="Confirmez le nouveau mot de passe"
-                        className="w-full pl-12 pr-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-[#eb5f2a] focus:ring-2 focus:ring-[#eb5f2a]/20 transition-all outline-none"
+                        className="w-full pl-12 pr-4 py-3 rounded-xl bg-white border border-slate-200 focus:border-[#f15b24] focus:ring-2 focus:ring-[#f15b24]/20 transition-all outline-none"
                       />
                     </div>
                   </div>
@@ -556,7 +556,7 @@ export default function AccountPage() {
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#eb5f2a] text-white font-medium hover:bg-[#d14d1a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#f15b24] text-white font-medium hover:bg-[#d14d1a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSaving ? (
                     <>

@@ -360,7 +360,7 @@ export default function UsersManager({
                 setCreateOpen(true);
                 setError("");
               }}
-              className="inline-flex min-h-11 items-center gap-2 rounded-md bg-[#eb5f2a] px-4 text-sm font-semibold text-white transition hover:bg-[#d94c18]"
+              className="inline-flex min-h-11 items-center gap-2 rounded-md bg-[#f15b24] px-4 text-sm font-semibold text-white transition hover:bg-[#d94c18]"
             >
               <Plus className="h-4 w-4" /> Nouvel administrateur
             </button>
@@ -372,7 +372,7 @@ export default function UsersManager({
         {summaryItems.map((item) => (
           <div key={item.label} className="glass-card p-4 sm:p-5">
             <item.icon
-              className="mb-3 h-5 w-5 text-[#eb5f2a]"
+              className="mb-3 h-5 w-5 text-[#f15b24]"
               aria-hidden="true"
             />
             <p className="text-2xl font-bold text-slate-900">{item.value}</p>
@@ -655,7 +655,7 @@ export default function UsersManager({
           >
             <div className="p-6">
               <div className="flex flex-col gap-4 border-b border-slate-200 pb-6 sm:flex-row sm:items-center">
-                <span className="flex h-16 w-16 items-center justify-center rounded-lg bg-[#eb5f2a]/10 text-xl font-bold text-[#d94c18]">
+                <span className="flex h-16 w-16 items-center justify-center rounded-lg bg-[#f15b24]/10 text-xl font-bold text-[#d94c18]">
                   {initials(viewUser)}
                 </span>
                 <div className="min-w-0 flex-1">
@@ -810,7 +810,7 @@ export default function UsersManager({
                     setViewUser(null);
                     openEdit(viewUser);
                   }}
-                  className="inline-flex items-center gap-2 rounded-md bg-[#eb5f2a] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#d94c18]"
+                  className="inline-flex items-center gap-2 rounded-md bg-[#f15b24] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#d94c18]"
                 >
                   <Pencil className="h-4 w-4" />
                   Modifier
@@ -950,7 +950,7 @@ export default function UsersManager({
                       setForm({ ...form, isActive: event.target.checked })
                     }
                     disabled={editUser.id === currentUserId}
-                    className="h-5 w-5 accent-[#eb5f2a]"
+                    className="h-5 w-5 accent-[#f15b24]"
                   />
                 </label>
               </div>
@@ -965,7 +965,7 @@ export default function UsersManager({
                 <button
                   type="submit"
                   disabled={saving}
-                  className="inline-flex min-w-32 items-center justify-center gap-2 rounded-md bg-[#eb5f2a] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#d94c18] disabled:opacity-60"
+                  className="inline-flex min-w-32 items-center justify-center gap-2 rounded-md bg-[#f15b24] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#d94c18] disabled:opacity-60"
                 >
                   {saving ? (
                     <LoaderCircle className="h-4 w-4 animate-spin" />
@@ -1191,7 +1191,7 @@ export default function UsersManager({
                 <button
                   type="submit"
                   disabled={saving || createForm.adminModules.length === 0}
-                  className="inline-flex min-w-40 items-center justify-center gap-2 rounded-md bg-[#eb5f2a] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#d94c18] disabled:opacity-50"
+                  className="inline-flex min-w-40 items-center justify-center gap-2 rounded-md bg-[#f15b24] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#d94c18] disabled:opacity-50"
                 >
                   {saving ? (
                     <LoaderCircle className="h-4 w-4 animate-spin" />

@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Heart, Phone, Home, FileText, Users, HelpCircle, LogIn, UserPlus, LayoutDashboard, Settings, LogOut } from 'lucide-react';
+import { Menu, X, Heart, MessageCircle, Home, FileText, Users, HelpCircle, LogIn, UserPlus, LayoutDashboard, Settings, LogOut } from 'lucide-react';
+import { whatsappLink } from '@/lib/contacts';
 import UserMenu from './UserMenu';
 import { useAuth } from './AuthProvider';
 import { useSiteConfig } from '@/hooks/useSiteConfig';
@@ -13,45 +14,14 @@ import { useSiteConfig } from '@/hooks/useSiteConfig';
 export default function Header() {
   const siteConfig = useSiteConfig();
   const router = useRouter();
+  const pathname = usePathname();
+  const isActive = (href: string) => href === "/" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
   const { user, isLoading, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     document.title = `${siteConfig.siteName} - ${siteConfig.siteTagline}`;
-    // Déduit le type MIME depuis le data URL (ex. image/png, image/svg+xml).
-    const mimeMatch = siteConfig.logoDataUrl?.match(/^data:([^;,]+)[;,]/);
-    const logoType = mimeMatch?.[1] || 'image/png';
-
-    if (siteConfig.logoDataUrl) {
-      // Aligne TOUS les liens d'icône (dont le /favicon.ico injecté par Next)
-      // sur le logo du site pour que la favicon suive le logo.
-      const iconLinks = Array.from(
-        document.querySelectorAll<HTMLLinkElement>('link[rel~="icon"], link[rel="apple-touch-icon"]')
-      );
-      let managed = document.querySelector<HTMLLinkElement>('link[data-site-logo]');
-      if (!managed) {
-        managed = document.createElement('link');
-        managed.rel = 'icon';
-        managed.dataset.siteLogo = 'true';
-        document.head.appendChild(managed);
-      }
-      [...iconLinks, managed].forEach((link) => {
-        link.href = siteConfig.logoDataUrl as string;
-        link.type = logoType;
-      });
-    } else {
-      // Pas de logo : on retire notre lien et on rétablit la favicon par défaut.
-      document.querySelector<HTMLLinkElement>('link[data-site-logo]')?.remove();
-      document
-        .querySelectorAll<HTMLLinkElement>('link[rel~="icon"]')
-        .forEach((link) => {
-          if (link.href.startsWith('data:')) {
-            link.href = '/favicon.ico';
-            link.removeAttribute('type');
-          }
-        });
-    }
-  }, [siteConfig.logoDataUrl, siteConfig.siteName, siteConfig.siteTagline]);
+  }, [siteConfig.siteName, siteConfig.siteTagline]);
 
   const mainNavLinks = [
     { href: '/', label: 'Accueil', icon: Home },
@@ -61,7 +31,7 @@ export default function Header() {
   ];
 
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
-  const emergencyHref = `tel:${siteConfig.emergencyNumber.replace(/[^\d+]/g, '')}`;
+  const emergencyHref = whatsappLink(siteConfig.clinicWhatsapp) || '/ressources#clinique-juridique';
 
   return (
     <header
@@ -79,7 +49,7 @@ export default function Header() {
             {/* Logo */}
             <Link href="/" className="flex min-w-0 items-center gap-3 group" aria-label={`${siteConfig.siteName} — Accueil`}>
               <motion.div
-                className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#eb5f2a] to-[#d14d1a] flex items-center justify-center overflow-hidden flex-shrink-0"
+                className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#f15b24] to-[#d14d1a] flex items-center justify-center overflow-hidden flex-shrink-0"
                 whileHover={{ scale: 1.05, rotate: 5 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -90,7 +60,7 @@ export default function Header() {
                 )}
               </motion.div>
               <div className="min-w-0 max-w-48 sm:max-w-64">
-                <p className="text-sm sm:text-xl font-bold text-slate-900 group-hover:text-[#eb5f2a] transition-colors truncate">
+                <p className="text-sm sm:text-xl font-bold text-slate-900 group-hover:text-[#f15b24] transition-colors truncate">
                   {siteConfig.siteName}
                 </p>
                 <p className="hidden sm:block text-xs text-slate-500 truncate">{siteConfig.siteTagline}</p>
@@ -103,7 +73,8 @@ export default function Header() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="px-4 py-2.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-all flex items-center gap-2 text-sm font-medium"
+                  aria-current={isActive(link.href) ? "page" : undefined}
+                  className={`px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 text-sm ${isActive(link.href) ? "font-extrabold text-orange-800 bg-orange-50" : "font-medium text-slate-600 hover:bg-slate-100"}`}
                 >
                   <link.icon className="w-4 h-4" />
                   {link.label}
@@ -128,7 +99,7 @@ export default function Header() {
                   </Link>
                   <Link
                     href="/inscription"
-                    className="px-4 py-2.5 rounded-xl bg-[#eb5f2a] text-white hover:bg-[#d14d1a] transition-colors flex items-center gap-2 text-sm font-medium"
+                    className="px-4 py-2.5 rounded-xl bg-[#f15b24] text-white hover:bg-[#d14d1a] transition-colors flex items-center gap-2 text-sm font-medium"
                   >
                     <UserPlus className="w-4 h-4" />
                     Inscription
@@ -142,8 +113,8 @@ export default function Header() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Phone className="w-4 h-4" />
-                Urgence
+                <MessageCircle className="w-4 h-4" />
+                Clinique juridique
               </motion.a>
             </div>
 
@@ -183,10 +154,11 @@ export default function Header() {
                 >
                   <Link
                     href={link.href}
-                    className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-all font-medium"
+                    aria-current={isActive(link.href) ? "page" : undefined}
+                    className={`flex items-center gap-3 px-4 py-3.5 rounded-xl ${isActive(link.href) ? "font-extrabold text-orange-800 bg-orange-50" : "font-medium text-slate-700 hover:bg-slate-100"}`}
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    <link.icon className="w-5 h-5 text-[#eb5f2a]" />
+                    <link.icon className="w-5 h-5 text-[#f15b24]" />
                     {link.label}
                   </Link>
                 </motion.div>
@@ -199,7 +171,7 @@ export default function Header() {
                 ) : user ? (
                   <>
                     <div className="flex items-center gap-3 px-4 py-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#eb5f2a] to-[#d14d1a] flex items-center justify-center text-white text-sm font-semibold">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#f15b24] to-[#d14d1a] flex items-center justify-center text-white text-sm font-semibold">
                         {(user.name || user.email.split('@')[0]).slice(0, 2).toUpperCase()}
                       </div>
                       <div className="min-w-0">
@@ -220,7 +192,7 @@ export default function Header() {
                           className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-all font-medium"
                           onClick={() => setIsMenuOpen(false)}
                         >
-                          <LayoutDashboard className="w-5 h-5 text-[#eb5f2a]" />
+                          <LayoutDashboard className="w-5 h-5 text-[#f15b24]" />
                           Tableau de bord
                         </Link>
                       </motion.div>
@@ -235,7 +207,7 @@ export default function Header() {
                         className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-all font-medium"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        <Settings className="w-5 h-5 text-[#eb5f2a]" />
+                        <Settings className="w-5 h-5 text-[#f15b24]" />
                         {isAdmin ? 'Paramètres du compte' : 'Mon tableau de bord'}
                       </Link>
                     </motion.div>
@@ -269,7 +241,7 @@ export default function Header() {
                         className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-all font-medium"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        <LogIn className="w-5 h-5 text-[#eb5f2a]" />
+                        <LogIn className="w-5 h-5 text-[#f15b24]" />
                         Connexion
                       </Link>
                     </motion.div>
@@ -283,7 +255,7 @@ export default function Header() {
                         className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-all font-medium"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        <UserPlus className="w-5 h-5 text-[#eb5f2a]" />
+                        <UserPlus className="w-5 h-5 text-[#f15b24]" />
                         Inscription
                       </Link>
                     </motion.div>
@@ -299,8 +271,8 @@ export default function Header() {
                 className="glass-button flex items-center justify-center gap-2 mt-4"
                 onClick={() => setIsMenuOpen(false)}
               >
-                <Phone className="w-4 h-4" />
-                Appel d’urgence
+                <MessageCircle className="w-4 h-4" />
+                Clinique juridique
               </motion.a>
             </nav>
           </motion.div>

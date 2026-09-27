@@ -51,7 +51,7 @@ export default function AdminSidebar({
       {/* Header */}
       <div className="flex items-center justify-between gap-3 p-4 lg:p-7 border-b border-slate-800">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#eb5f2a] flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-[#f15b24] flex items-center justify-center">
             <Shield className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -94,7 +94,7 @@ export default function AdminSidebar({
               onClick={() => setIsOpen(false)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 active
-                  ? 'bg-[#eb5f2a] text-white shadow-lg shadow-[#eb5f2a]/25'
+                  ? 'bg-[#f15b24] text-white shadow-lg shadow-[#f15b24]/25'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
             >

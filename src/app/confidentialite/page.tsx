@@ -12,7 +12,7 @@ export default function ConfidentialitePage() {
       <div className="max-w-4xl mx-auto">
         <div className="glass-card p-7 md:p-12">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#eb5f2a]/10 text-[#eb5f2a] text-sm font-medium mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#f15b24]/10 text-[#f15b24] text-sm font-medium mb-4">
               Confidentialité
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">

@@ -236,7 +236,7 @@ export default function ResourcesManager({
           <div key={label} className="glass-card p-4 sm:p-5">
             <Icon
               size={20}
-              className="mb-3 text-[#eb5f2a]"
+              className="mb-3 text-[#f15b24]"
               aria-hidden="true"
             />
             <p className="text-2xl font-bold text-slate-900">{value}</p>

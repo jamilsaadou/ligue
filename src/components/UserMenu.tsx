@@ -45,7 +45,7 @@ export default function UserMenu({ user }: { user: AuthUser }) {
         className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#eb5f2a] to-[#d14d1a] flex items-center justify-center text-white text-sm font-semibold">
+        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#f15b24] to-[#d14d1a] flex items-center justify-center text-white text-sm font-semibold">
           {initials}
         </div>
         <span className="hidden lg:block text-sm font-medium text-slate-700 max-w-[120px] truncate">
@@ -70,7 +70,7 @@ export default function UserMenu({ user }: { user: AuthUser }) {
               <p className="text-sm font-medium text-slate-900 truncate">{displayName}</p>
               <p className="text-xs text-slate-500 truncate">{user.email}</p>
               {isAdmin && (
-                <span className="inline-block mt-1.5 px-2 py-0.5 text-xs font-medium bg-[#eb5f2a]/10 text-[#eb5f2a] rounded-full">
+                <span className="inline-block mt-1.5 px-2 py-0.5 text-xs font-medium bg-[#f15b24]/10 text-[#f15b24] rounded-full">
                   {user.role === 'super_admin' ? 'Super Admin' : 'Admin'}
                 </span>
               )}

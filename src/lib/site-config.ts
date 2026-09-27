@@ -19,11 +19,20 @@ export const getPublicSiteConfig = async (): Promise<PublicSiteConfig> => {
       DEFAULT_SITE_CONFIG.organizationName
     ),
     siteDescription: valueAsString(
-      values.get('siteDescription'),
+      values.get('siteDescription') === "Première plateforme numérique d'autodiagnostic des violences en Afrique de l'Ouest."
+        ? DEFAULT_SITE_CONFIG.siteDescription
+        : values.get('siteDescription'),
       DEFAULT_SITE_CONFIG.siteDescription
     ),
     supportEmail: valueAsString(values.get('supportEmail'), DEFAULT_SITE_CONFIG.supportEmail),
     supportPhone: valueAsString(values.get('supportPhone'), DEFAULT_SITE_CONFIG.supportPhone),
+    clinicWhatsapp: valueAsString(values.get('clinicWhatsapp'), DEFAULT_SITE_CONFIG.clinicWhatsapp),
+    clinicPsychologistPhone: valueAsString(values.get('clinicPsychologistPhone'), DEFAULT_SITE_CONFIG.clinicPsychologistPhone),
+    clinicCaseManagerPhone: valueAsString(values.get('clinicCaseManagerPhone'), DEFAULT_SITE_CONFIG.clinicCaseManagerPhone),
+    facebookUrl: valueAsString(values.get('facebookUrl'), DEFAULT_SITE_CONFIG.facebookUrl),
+    instagramUrl: valueAsString(values.get('instagramUrl'), DEFAULT_SITE_CONFIG.instagramUrl),
+    twitterUrl: valueAsString(values.get('twitterUrl'), DEFAULT_SITE_CONFIG.twitterUrl),
+    youtubeUrl: valueAsString(values.get('youtubeUrl'), DEFAULT_SITE_CONFIG.youtubeUrl),
     siteLocation: valueAsString(values.get('siteLocation'), DEFAULT_SITE_CONFIG.siteLocation),
     emergencyNumber: valueAsString(
       values.get('emergencyNumber'),
@@ -32,6 +41,6 @@ export const getPublicSiteConfig = async (): Promise<PublicSiteConfig> => {
     logoDataUrl:
       typeof values.get('logoDataUrl') === 'string' && values.get('logoDataUrl')
         ? (values.get('logoDataUrl') as string)
-        : null
+        : DEFAULT_SITE_CONFIG.logoDataUrl
   };
 };

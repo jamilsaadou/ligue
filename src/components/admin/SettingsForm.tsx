@@ -26,6 +26,14 @@ export type AdminSettings = {
   siteDescription: string;
   supportEmail: string;
   supportPhone: string;
+  clinicWhatsapp: string;
+  clinicPsychologistPhone: string;
+  clinicCaseManagerPhone: string;
+  facebookUrl: string;
+  instagramUrl: string;
+  twitterUrl: string;
+  youtubeUrl: string;
+
   siteLocation: string;
   emergencyNumber: string;
   logoDataUrl: string;
@@ -228,6 +236,27 @@ export default function SettingsForm({ initial }: { initial: AdminSettings }) {
                 <Field label="Téléphone support">
                   <input className="glass-input w-full" value={form.supportPhone} onChange={(event) => update('supportPhone', event.target.value)} placeholder="+227..." />
                 </Field>
+                <Field label="WhatsApp de la clinique juridique (+227…)">
+                  <input type="tel" className="glass-input w-full" value={form.clinicWhatsapp} onChange={(event) => update('clinicWhatsapp', event.target.value)} />
+                </Field>
+                <Field label="Téléphone des psychologues">
+                  <input type="tel" className="glass-input w-full" value={form.clinicPsychologistPhone} onChange={(event) => update('clinicPsychologistPhone', event.target.value)} />
+                </Field>
+                <Field label="Téléphone des gestionnaires de cas">
+                  <input type="tel" className="glass-input w-full" value={form.clinicCaseManagerPhone} onChange={(event) => update('clinicCaseManagerPhone', event.target.value)} />
+                </Field>
+                <Field label="Page Facebook officielle">
+                  <input type="url" className="glass-input w-full" value={form.facebookUrl} onChange={(event) => update('facebookUrl', event.target.value)} />
+                </Field>
+                <Field label="Page Instagram officielle">
+                  <input type="url" className="glass-input w-full" value={form.instagramUrl} onChange={(event) => update('instagramUrl', event.target.value)} />
+                </Field>
+                <Field label="Page X / Twitter officielle">
+                  <input type="url" className="glass-input w-full" value={form.twitterUrl} onChange={(event) => update('twitterUrl', event.target.value)} />
+                </Field>
+                <Field label="Page YouTube officielle">
+                  <input type="url" className="glass-input w-full" value={form.youtubeUrl} onChange={(event) => update('youtubeUrl', event.target.value)} />
+                </Field>
                 <Field label="Localisation">
                   <input className="glass-input w-full" value={form.siteLocation} onChange={(event) => update('siteLocation', event.target.value)} />
                 </Field>
@@ -355,7 +384,7 @@ export default function SettingsForm({ initial }: { initial: AdminSettings }) {
 function SectionHeader({ icon: Icon, title, description }: { icon: typeof Building2; title: string; description: string }) {
   return (
     <div className="flex items-start gap-4 border-b border-slate-200 bg-slate-50 px-6 py-5 md:px-8">
-      <div className="w-10 h-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center"><Icon className="w-5 h-5 text-[#eb5f2a]" /></div>
+      <div className="w-10 h-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center"><Icon className="w-5 h-5 text-[#f15b24]" /></div>
       <div><h2 className="font-bold text-slate-900">{title}</h2><p className="mt-1 text-sm text-slate-500">{description}</p></div>
     </div>
   );
@@ -370,7 +399,7 @@ function Toggle({ label, description, checked, onChange }: { label: string; desc
     <label className="flex items-center justify-between gap-4 rounded-lg border border-slate-200 p-4 cursor-pointer hover:bg-slate-50">
       <span><span className="block text-sm font-semibold text-slate-800">{label}</span><span className="block text-xs text-slate-500 mt-1">{description}</span></span>
       <input type="checkbox" className="sr-only" checked={checked} onChange={(event) => onChange(event.target.checked)} />
-      <span className={`relative h-6 w-11 flex-shrink-0 rounded-full transition-colors ${checked ? 'bg-[#eb5f2a]' : 'bg-slate-300'}`}><span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-6' : 'translate-x-1'}`} /></span>
+      <span className={`relative h-6 w-11 flex-shrink-0 rounded-full transition-colors ${checked ? 'bg-[#f15b24]' : 'bg-slate-300'}`}><span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-6' : 'translate-x-1'}`} /></span>
     </label>
   );
 }

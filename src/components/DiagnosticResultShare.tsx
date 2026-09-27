@@ -27,7 +27,7 @@ type Props = {
 
 const LEVEL_COLORS = {
   safe: '#64748b',
-  warning: '#eb5f2a',
+  warning: '#f15b24',
   danger: '#ef4444'
 };
 
@@ -114,7 +114,7 @@ export default function DiagnosticResultShare(props: Props) {
     context.fillStyle = '#ffffff';
     roundedRect(context, 90, 90, width - 180, height - 180, 48);
 
-    context.fillStyle = '#eb5f2a';
+    context.fillStyle = '#f15b24';
     roundedRect(context, 90, 90, width - 180, 190, 48);
     context.fillRect(90, 200, width - 180, 80);
 
@@ -136,13 +136,13 @@ export default function DiagnosticResultShare(props: Props) {
           logoHeight
         );
       } catch {
-        context.fillStyle = '#eb5f2a';
+        context.fillStyle = '#f15b24';
         context.font = '800 30px Manrope, Arial, sans-serif';
         context.textAlign = 'center';
         context.fillText(siteConfig.siteName.slice(0, 2).toUpperCase(), 185, 196);
       }
     } else {
-      context.fillStyle = '#eb5f2a';
+      context.fillStyle = '#f15b24';
       context.font = '800 30px Manrope, Arial, sans-serif';
       context.textAlign = 'center';
       context.fillText(siteConfig.siteName.slice(0, 2).toUpperCase(), 185, 196);
@@ -295,11 +295,11 @@ export default function DiagnosticResultShare(props: Props) {
   };
 
   return (
-    <div className="glass-card p-5 md:p-8 border border-[#eb5f2a]/20 bg-white">
+    <div className="glass-card p-5 md:p-8 border border-[#f15b24]/20 bg-white">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-[#eb5f2a]/10 flex items-center justify-center flex-shrink-0">
-            <ImageIcon className="w-6 h-6 text-[#eb5f2a]" />
+          <div className="w-12 h-12 rounded-xl bg-[#f15b24]/10 flex items-center justify-center flex-shrink-0">
+            <ImageIcon className="w-6 h-6 text-[#f15b24]" />
           </div>
           <div>
             <h2 className="text-lg font-bold text-slate-900">Partager mon résultat</h2>

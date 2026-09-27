@@ -17,6 +17,14 @@ const STRING_LIMITS: Record<string, number> = {
   supportEmail: 180,
   supportPhone: 50,
   siteLocation: 120,
+  clinicWhatsapp: 50,
+  clinicPsychologistPhone: 50,
+  clinicCaseManagerPhone: 50,
+  facebookUrl: 500,
+  instagramUrl: 500,
+  twitterUrl: 500,
+  youtubeUrl: 500,
+
   emergencyNumber: 30,
   smtpHost: 255,
   smtpUsername: 255,
@@ -55,6 +63,20 @@ export async function POST(request: Request) {
         sanitized[key] = payload[key].trim().slice(0, limit);
       }
     });
+    for (const key of ['facebookUrl', 'instagramUrl', 'twitterUrl', 'youtubeUrl']) {
+      const value = sanitized[key];
+      if (typeof value === 'string' && value) {
+        try {
+          const url = new URL(value);
+          if (url.protocol !== 'https:') throw new Error('Invalid URL');
+        } catch {
+          return NextResponse.json({ ok: false, message: 'Les liens sociaux doivent être des URL HTTPS valides.' }, { status: 400 });
+        }
+      }
+    }
+    if (sanitized.clinicWhatsapp && !/^227\d{8}$/.test(String(sanitized.clinicWhatsapp).replace(/[\s().-]/g, '').replace(/^\+/, ''))) {
+      return NextResponse.json({ ok: false, message: 'Indiquez le WhatsApp avec son indicatif +227.' }, { status: 400 });
+    }
     BOOLEAN_KEYS.forEach((key) => {
       if (typeof payload[key] === 'boolean') sanitized[key] = payload[key];
     });

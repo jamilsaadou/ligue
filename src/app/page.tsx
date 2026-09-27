@@ -106,7 +106,7 @@ export default function Home() {
     {
       icon: MessageCircle,
       title: "Orienté aide",
-      description: "Ressources d'aide adaptées à votre situation et votre pays."
+      description: "Ressources d'aide adaptées à votre situation au Niger."
     }
   ];
 
@@ -133,29 +133,29 @@ export default function Home() {
     }
   ];
 
-  const heroDiagnostics = diagnostics.slice(0, 3);
+
 
   return (
     <div className="relative pb-20">
       {/* Hero Section */}
       <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid lg:grid-cols-1 gap-12 items-center">
             {/* Left Content */}
             <motion.div
-              className="text-center lg:text-left"
+              className="text-center"
               initial={{ opacity: 0, x: -50 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
             >
               <motion.div
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#eb5f2a]/10 border border-[#eb5f2a]/30 mb-6"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#f15b24]/10 border border-[#f15b24]/30 mb-6"
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                <span className="w-2 h-2 rounded-full bg-[#eb5f2a] animate-pulse" />
-                <span className="text-[#eb5f2a] text-sm font-medium">Première plateforme en Afrique de l&apos;Ouest</span>
+                <span className="w-2 h-2 rounded-full bg-[#f15b24] animate-pulse" />
+                <span className="text-[#f15b24] text-sm font-medium">Première plateforme au Niger</span>
               </motion.div>
 
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight mb-6">
@@ -163,13 +163,13 @@ export default function Home() {
                 <span className="gradient-text">mieux protéger</span>
               </h1>
 
-              <p className="text-lg text-slate-600 mb-8 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+              <p className="text-lg text-slate-600 mb-8 max-w-xl mx-auto leading-relaxed">
                 ALERTE VIOLENCE est la première plateforme numérique d&apos;autodiagnostic des violences
-                en Afrique de l&apos;Ouest. À travers plusieurs outils spécialisés, évaluez votre
+                au Niger. À travers plusieurs outils spécialisés, évaluez votre
                 situation ou celle d&apos;un proche de manière anonyme et confidentielle.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                   <Link href="/diagnostic" className="glass-button flex items-center justify-center gap-2 text-lg">
                     Commencer un diagnostic
@@ -184,101 +184,22 @@ export default function Home() {
               </div>
 
               {/* Trust Badges */}
-              <div className="mt-12 flex items-center gap-6 flex-wrap justify-center lg:justify-start">
+              <div className="mt-12 flex items-center gap-6 flex-wrap justify-center">
                 <div className="flex items-center gap-2 text-slate-500 text-sm">
-                  <CheckCircle className="w-5 h-5 text-[#eb5f2a]" />
+                  <CheckCircle className="w-5 h-5 text-[#f15b24]" />
                   <span>Gratuit</span>
                 </div>
                 <div className="flex items-center gap-2 text-slate-500 text-sm">
-                  <CheckCircle className="w-5 h-5 text-[#eb5f2a]" />
+                  <CheckCircle className="w-5 h-5 text-[#f15b24]" />
                   <span>Anonyme</span>
                 </div>
                 <div className="flex items-center gap-2 text-slate-500 text-sm">
-                  <CheckCircle className="w-5 h-5 text-[#eb5f2a]" />
+                  <CheckCircle className="w-5 h-5 text-[#f15b24]" />
                   <span>Confidentiel</span>
                 </div>
               </div>
             </motion.div>
 
-            {/* Right Content - Illustration */}
-            <motion.div
-              className="relative hidden lg:block"
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8 }}
-            >
-              <div className="relative">
-                {/* Main Card */}
-                <motion.div
-                  className="glass-card p-8 relative z-10"
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#eb5f2a] to-[#d14d1a] flex items-center justify-center">
-                      <ClipboardCheck className="w-8 h-8 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-bold text-slate-900">Nos diagnostics</h3>
-                      <p className="text-slate-500">Des outils d&apos;autodiagnostic</p>
-                    </div>
-                  </div>
-
-                  {/* Mini Diagnostics Preview */}
-                  <div className="space-y-3">
-                    {heroDiagnostics.map((diagnostic, index) => {
-                      const DiagnosticIcon = pickDiagnosticIcon(diagnostic.title);
-                      return (
-                        <motion.div
-                          key={diagnostic.id}
-                          className="flex items-center gap-3 p-3 rounded-xl bg-slate-50"
-                          initial={{ opacity: 0, x: 20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.5 + index * 0.1 }}
-                        >
-                          <div className="w-8 h-8 rounded-lg bg-[#eb5f2a]/10 flex items-center justify-center flex-shrink-0">
-                            <DiagnosticIcon className="w-4 h-4 text-[#eb5f2a]" />
-                          </div>
-                          <div className="min-w-0">
-                            <span className="block text-slate-700 text-sm font-medium truncate">
-                              {diagnostic.title}
-                            </span>
-                            <span className="block text-slate-400 text-xs">
-                              {diagnostic.totalQuestions} questions
-                            </span>
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-
-                  <Link
-                    href="/diagnostic"
-                    className="mt-5 flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-[#eb5f2a]/30 text-[#eb5f2a] text-sm font-medium hover:bg-[#eb5f2a]/10 transition-colors"
-                  >
-                    Voir tous les diagnostics
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                </motion.div>
-
-                {/* Floating Elements */}
-                <motion.div
-                  className="absolute -top-6 -right-6 w-24 h-24 rounded-2xl bg-gradient-to-br from-[#eb5f2a] to-[#d14d1a] flex items-center justify-center shadow-xl"
-                  animate={{ rotate: [0, 10, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <Shield className="w-12 h-12 text-white" />
-                </motion.div>
-
-                <motion.div
-                  className="absolute -bottom-4 -left-4 w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center shadow-xl"
-                  animate={{ rotate: [0, -10, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                >
-                  <Lock className="w-10 h-10 text-slate-700" />
-                </motion.div>
-              </div>
-            </motion.div>
           </div>
         </div>
 
@@ -289,7 +210,7 @@ export default function Home() {
           transition={{ duration: 1.5, repeat: Infinity }}
         >
           <div className="w-6 h-10 rounded-full border-2 border-slate-300 flex items-start justify-center p-2">
-            <div className="w-1.5 h-3 rounded-full bg-[#eb5f2a]" />
+            <div className="w-1.5 h-3 rounded-full bg-[#f15b24]" />
           </div>
         </motion.div>
       </section>
@@ -322,8 +243,8 @@ export default function Home() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
               >
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#eb5f2a]/20 to-[#eb5f2a]/10 flex items-center justify-center mb-4">
-                  <feature.icon className="w-7 h-7 text-[#eb5f2a]" />
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#f15b24]/20 to-[#f15b24]/10 flex items-center justify-center mb-4">
+                  <feature.icon className="w-7 h-7 text-[#f15b24]" />
                 </div>
                 <h3 className="text-xl font-semibold text-slate-900 mb-2">{feature.title}</h3>
                 <p className="text-slate-600">{feature.description}</p>
@@ -336,8 +257,8 @@ export default function Home() {
       {/* How It Works Section */}
       <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-[#fff3ec] via-white to-white pointer-events-none" />
-        <div className="absolute -top-10 right-10 w-44 h-44 rounded-full bg-[#eb5f2a]/10 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-8 w-52 h-52 rounded-full bg-[#eb5f2a]/5 blur-3xl pointer-events-none" />
+        <div className="absolute -top-10 right-10 w-44 h-44 rounded-full bg-[#f15b24]/10 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-8 w-52 h-52 rounded-full bg-[#f15b24]/5 blur-3xl pointer-events-none" />
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative">
           <motion.div
@@ -359,7 +280,7 @@ export default function Home() {
           </motion.div>
 
           <div className="relative">
-            <div className="hidden lg:block absolute top-14 left-8 right-8 h-px bg-gradient-to-r from-transparent via-[#eb5f2a]/40 to-transparent" />
+            <div className="hidden lg:block absolute top-14 left-8 right-8 h-px bg-gradient-to-r from-transparent via-[#f15b24]/40 to-transparent" />
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 w-full justify-items-center">
               {howItWorks.map((item, index) => (
                 <motion.div
@@ -372,8 +293,8 @@ export default function Home() {
                   whileHover={{ y: -4 }}
                 >
                   <div className="glass-card p-6 flex flex-col items-center text-center relative overflow-hidden">
-                    <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#eb5f2a] to-[#d14d1a]" />
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#eb5f2a] to-[#d14d1a] flex items-center justify-center text-white font-bold text-xl mb-4 shadow-lg ring-4 ring-white/70">
+                    <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-[#f15b24] to-[#d14d1a]" />
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#f15b24] to-[#d14d1a] flex items-center justify-center text-white font-bold text-xl mb-4 shadow-lg ring-4 ring-white/70">
                       {item.step}
                     </div>
                     <h3 className="text-lg font-semibold text-slate-900 mb-2">{item.title}</h3>
@@ -381,7 +302,7 @@ export default function Home() {
                   </div>
                   {index < howItWorks.length - 1 && (
                     <div className="hidden lg:block absolute top-14 -right-4 transform -translate-y-1/2 z-10">
-                      <ChevronRight className="w-6 h-6 text-[#eb5f2a]" />
+                      <ChevronRight className="w-6 h-6 text-[#f15b24]" />
                     </div>
                   )}
                 </motion.div>
@@ -430,10 +351,10 @@ export default function Home() {
                     href="/diagnostic"
                     className="glass-card p-6 group w-full h-full flex flex-col items-center text-center"
                   >
-                    <div className="w-12 h-12 rounded-xl bg-[#eb5f2a]/10 flex items-center justify-center mb-4">
-                      <DiagnosticIcon className="w-6 h-6 text-[#eb5f2a]" />
+                    <div className="w-12 h-12 rounded-xl bg-[#f15b24]/10 flex items-center justify-center mb-4">
+                      <DiagnosticIcon className="w-6 h-6 text-[#f15b24]" />
                     </div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-1 group-hover:text-[#eb5f2a] transition-colors">
+                    <h3 className="text-lg font-semibold text-slate-900 mb-1 group-hover:text-[#f15b24] transition-colors">
                       {diagnostic.title}
                     </h3>
                     {diagnostic.description && (
@@ -477,7 +398,7 @@ export default function Home() {
             viewport={{ once: true }}
           >
             <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
-              <div className="text-center lg:text-left">
+              <div className="text-center">
                 <div className="category-badge mb-4 mx-auto lg:mx-0">
                   <Shield className="w-4 h-4" />
                   Pourquoi c&apos;est important
@@ -519,8 +440,8 @@ export default function Home() {
                       viewport={{ once: true }}
                       transition={{ delay: index * 0.1 }}
                     >
-                      <div className="w-11 h-11 rounded-lg bg-[#eb5f2a]/10 flex items-center justify-center flex-shrink-0">
-                        <point.icon className="w-5 h-5 text-[#eb5f2a]" />
+                      <div className="w-11 h-11 rounded-lg bg-[#f15b24]/10 flex items-center justify-center flex-shrink-0">
+                        <point.icon className="w-5 h-5 text-[#f15b24]" />
                       </div>
                       <div>
                         <h3 className="text-slate-900 font-semibold mb-1">{point.title}</h3>
@@ -530,8 +451,8 @@ export default function Home() {
                   ))}
                 </div>
 
-                <div className="mt-8 flex justify-center lg:justify-start">
-                  <Link href="/a-propos" className="inline-flex items-center gap-2 text-[#eb5f2a] hover:text-[#f4855c] transition-colors">
+                <div className="mt-8 flex justify-center">
+                  <Link href="/a-propos" className="inline-flex items-center gap-2 text-[#f15b24] hover:text-[#f4855c] transition-colors">
                     En savoir plus sur notre mission
                     <ArrowRight className="w-4 h-4" />
                   </Link>
@@ -539,12 +460,12 @@ export default function Home() {
               </div>
 
               <div className="relative flex justify-center">
-                <div className="w-full max-w-md aspect-square rounded-2xl bg-gradient-to-br from-[#eb5f2a]/15 to-slate-200 flex items-center justify-center">
+                <div className="w-full max-w-md aspect-square rounded-2xl bg-gradient-to-br from-[#f15b24]/15 to-slate-200 flex items-center justify-center">
                   <motion.div
                     animate={{ scale: [1, 1.1, 1] }}
                     transition={{ duration: 3, repeat: Infinity }}
                   >
-                    <Shield className="w-32 h-32 text-[#eb5f2a]" />
+                    <Shield className="w-32 h-32 text-[#f15b24]" />
                   </motion.div>
                 </div>
               </div>
@@ -563,7 +484,7 @@ export default function Home() {
             viewport={{ once: true }}
           >
             {/* Background decoration */}
-            <div className="absolute inset-0 bg-gradient-to-br from-[#eb5f2a]/10 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#f15b24]/10 to-transparent pointer-events-none" />
 
             <div className="relative z-10 flex flex-col items-center">
               <motion.div
@@ -571,7 +492,7 @@ export default function Home() {
                 whileInView={{ scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ type: "spring", delay: 0.2 }}
-                className="w-20 h-20 rounded-full bg-gradient-to-br from-[#eb5f2a] to-[#d14d1a] flex items-center justify-center mb-6"
+                className="w-20 h-20 rounded-full bg-gradient-to-br from-[#f15b24] to-[#d14d1a] flex items-center justify-center mb-6"
               >
                 <Shield className="w-10 h-10 text-white" />
               </motion.div>

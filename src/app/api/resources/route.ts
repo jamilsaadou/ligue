@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 export async function GET() {
   try {
     const countries = await prisma.country.findMany({
+      where: { code: 'NE' },
       orderBy: { name: 'asc' },
       include: {
         resources: { orderBy: { name: 'asc' } }

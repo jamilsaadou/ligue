@@ -178,7 +178,7 @@ function Metric({
 function Bars({
   items,
   total,
-  color = "#eb5f2a",
+  color = "#f15b24",
   empty,
 }: {
   items: ChartItem[];
@@ -338,7 +338,7 @@ function TimelineChart({
         <>
           <div className="mb-4 flex flex-wrap items-center gap-4 text-xs text-slate-600">
             <span className="flex items-center gap-2">
-              <i className="h-2 w-2 rounded-full bg-[#eb5f2a]" />
+              <i className="h-2 w-2 rounded-full bg-[#f15b24]" />
               Commencés
             </span>
             <span className="flex items-center gap-2">
@@ -387,13 +387,13 @@ function TimelineChart({
                 <>
                   <path
                     d={`${line("starts")} L${x(points.length - 1)},${y(0)} L${x(0)},${y(0)} Z`}
-                    fill="#eb5f2a"
+                    fill="#f15b24"
                     opacity=".07"
                   />
                   <path
                     d={line("starts")}
                     fill="none"
-                    stroke="#eb5f2a"
+                    stroke="#f15b24"
                     strokeWidth="2.5"
                   />
                   <path
@@ -414,7 +414,7 @@ function TimelineChart({
                         width={(width / points.length) * 0.28}
                         height={(height * point.starts) / ceiling}
                         rx="2"
-                        fill="#eb5f2a"
+                        fill="#f15b24"
                       />
                       <rect
                         x={x(index) + (width / points.length) * 0.04}
@@ -921,7 +921,7 @@ export default function AnalyticsDashboard({
           <Bars
             total={k.starts}
             items={[
-              { label: "Commencées", value: k.starts, color: "#eb5f2a" },
+              { label: "Commencées", value: k.starts, color: "#f15b24" },
               {
                 label: "Avec un résultat",
                 value: k.completedStarts,

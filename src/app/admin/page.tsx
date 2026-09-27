@@ -126,7 +126,7 @@ export default async function AdminDashboardPage({
             {daily.map((entry) => (
               <div key={entry.key} className="flex-1 flex flex-col items-center gap-2">
                 <div
-                  className="w-full rounded-lg bg-gradient-to-t from-[#eb5f2a] to-[#f2a07b]"
+                  className="w-full rounded-lg bg-gradient-to-t from-[#f15b24] to-[#f2a07b]"
                   style={{ height: `${(entry.value / maxDaily) * 100}%` }}
                   title={`${entry.value} visites`}
                 />
@@ -143,7 +143,7 @@ export default async function AdminDashboardPage({
           <div className="space-y-4">
             {[
               { key: 'safe', label: 'Sécurisé', color: '#64748b' },
-              { key: 'warning', label: 'Alerte', color: '#eb5f2a' },
+              { key: 'warning', label: 'Alerte', color: '#f15b24' },
               { key: 'danger', label: 'Danger', color: '#ef4444' }
             ].map((item) => {
               const value = levels[item.key] || 0;

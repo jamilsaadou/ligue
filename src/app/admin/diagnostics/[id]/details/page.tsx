@@ -94,7 +94,7 @@ export default async function DiagnosticDetailsPage({
       <div className="grid gap-3 sm:grid-cols-3">
         {metrics.map(({ label, value, icon: Icon }) => (
           <div key={label} className="glass-card p-5">
-            <Icon size={20} className="text-[#eb5f2a]" aria-hidden="true" />
+            <Icon size={20} className="text-[#f15b24]" aria-hidden="true" />
             <p className="mt-3 text-2xl font-bold text-slate-900">{value}</p>
             <p className="text-sm text-slate-500">{label}</p>
           </div>

@@ -213,7 +213,7 @@ const getAlertLevelForScore = (score: number, maxScore: number) => {
       subtitle: 'Dis STOP !',
       message:
         "Des signes préoccupants sont présents dans votre relation. Il est important d'en parler et de poser des limites claires. N'hésitez pas à consulter un professionnel.",
-      color: '#eb5f2a',
+      color: '#f15b24',
       bgClass: 'level-warning'
     };
   }
@@ -647,7 +647,7 @@ export default function DiagnosticPage() {
     if (!currentCategory || !diagnostic) return;
     const nextAnswers = { ...answers, [questionId]: points };
     setAnswers(nextAnswers);
-    
+
     // Auto-advance to next question after a short delay
     setTimeout(() => {
       if (currentQuestionIndex < currentCategory.questions.length - 1) {
@@ -730,9 +730,9 @@ export default function DiagnosticPage() {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", delay: 0.1 }}
-                className="w-16 h-16 rounded-full bg-gradient-to-br from-[#eb5f2a]/20 to-[#eb5f2a]/10 flex items-center justify-center mx-auto mb-4"
+                className="w-16 h-16 rounded-full bg-gradient-to-br from-[#f15b24]/20 to-[#f15b24]/10 flex items-center justify-center mx-auto mb-4"
               >
-                <Clock className="w-8 h-8 text-[#eb5f2a]" />
+                <Clock className="w-8 h-8 text-[#f15b24]" />
               </motion.div>
               <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
                 {savedProgress.showResults
@@ -787,7 +787,7 @@ export default function DiagnosticPage() {
                 <PlayCircle className="w-5 h-5" />
                 {savedProgress.showResults ? 'Voir mon résultat' : 'Reprendre où j’en étais'}
               </motion.button>
-              
+
               <motion.button
                 className="glass-button-outline w-full flex items-center justify-center gap-2"
                 onClick={handleStartNew}
@@ -833,7 +833,7 @@ export default function DiagnosticPage() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", delay: 0.2 }}
-              className="w-20 h-20 rounded-full bg-gradient-to-br from-[#eb5f2a] to-[#d14d1a] flex items-center justify-center mx-auto mb-6"
+              className="w-20 h-20 rounded-full bg-gradient-to-br from-[#f15b24] to-[#d14d1a] flex items-center justify-center mx-auto mb-6"
             >
               <ClipboardCheck className="w-10 h-10 text-white" />
             </motion.div>
@@ -849,7 +849,7 @@ export default function DiagnosticPage() {
             {availableDiagnostics.map((diag, index) => (
               <motion.button
                 key={diag.id}
-                className="glass-card p-6 w-full h-full text-left flex flex-col hover:border-[#eb5f2a]/50 transition-all group"
+                className="glass-card p-6 w-full h-full text-left flex flex-col hover:border-[#f15b24]/50 transition-all group"
                 onClick={() => setSelectedDiagnosticId(diag.id)}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -857,10 +857,10 @@ export default function DiagnosticPage() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#eb5f2a]/20 to-[#eb5f2a]/10 flex items-center justify-center mb-4 group-hover:from-[#eb5f2a]/30 group-hover:to-[#eb5f2a]/20 transition-all">
-                  <FileText className="w-7 h-7 text-[#eb5f2a]" />
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[#f15b24]/20 to-[#f15b24]/10 flex items-center justify-center mb-4 group-hover:from-[#f15b24]/30 group-hover:to-[#f15b24]/20 transition-all">
+                  <FileText className="w-7 h-7 text-[#f15b24]" />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2 group-hover:text-[#eb5f2a] transition-colors">
+                <h3 className="text-lg font-semibold text-slate-900 mb-2 group-hover:text-[#f15b24] transition-colors">
                   {diag.title}
                 </h3>
                 {diag.description && (
@@ -884,10 +884,10 @@ export default function DiagnosticPage() {
 
           <div className="mt-10 p-4 rounded-xl bg-slate-50 border border-slate-200">
             <div className="flex items-start gap-3">
-              <Shield className="w-5 h-5 text-[#eb5f2a] mt-0.5 flex-shrink-0" />
+              <Shield className="w-5 h-5 text-[#f15b24] mt-0.5 flex-shrink-0" />
               <div>
                 <p className="text-slate-700 text-sm">
-                  <strong className="text-[#eb5f2a]">100% confidentiel</strong> - Aucune identité n’est demandée.
+                  <strong className="text-[#f15b24]">100% confidentiel</strong> - Aucune identité n’est demandée.
                   Seules des statistiques anonymes permettent d’améliorer le service.
                 </p>
               </div>
@@ -918,7 +918,7 @@ export default function DiagnosticPage() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", delay: 0.2 }}
-              className="w-20 h-20 rounded-full bg-gradient-to-br from-[#eb5f2a] to-[#d14d1a] flex items-center justify-center mx-auto mb-6"
+              className="w-20 h-20 rounded-full bg-gradient-to-br from-[#f15b24] to-[#d14d1a] flex items-center justify-center mx-auto mb-6"
             >
               <Heart className="w-10 h-10 text-white" />
             </motion.div>
@@ -932,15 +932,15 @@ export default function DiagnosticPage() {
 
           <div className="grid md:grid-cols-2 gap-8">
             <motion.button
-              className="glass-card p-8 text-left hover:border-[#eb5f2a]/50 transition-all group"
+              className="glass-card p-8 text-left hover:border-[#f15b24]/50 transition-all group"
               onClick={() => setMode('self')}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#eb5f2a]/20 to-[#eb5f2a]/10 flex items-center justify-center mb-6 group-hover:from-[#eb5f2a]/30 group-hover:to-[#eb5f2a]/20 transition-all">
-                <User className="w-8 h-8 text-[#eb5f2a]" />
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#f15b24]/20 to-[#f15b24]/10 flex items-center justify-center mb-6 group-hover:from-[#f15b24]/30 group-hover:to-[#f15b24]/20 transition-all">
+                <User className="w-8 h-8 text-[#f15b24]" />
               </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-2 group-hover:text-[#eb5f2a] transition-colors">
+              <h3 className="text-xl font-semibold text-slate-900 mb-2 group-hover:text-[#f15b24] transition-colors">
                 Pour moi-même
               </h3>
               <p className="text-slate-600 text-sm">
@@ -949,15 +949,15 @@ export default function DiagnosticPage() {
             </motion.button>
 
             <motion.button
-              className="glass-card p-8 text-left hover:border-[#eb5f2a]/50 transition-all group"
+              className="glass-card p-8 text-left hover:border-[#f15b24]/50 transition-all group"
               onClick={() => setMode('other')}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
               <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-6 group-hover:bg-slate-200 transition-all">
-                <Users className="w-8 h-8 text-slate-600 group-hover:text-[#eb5f2a] transition-colors" />
+                <Users className="w-8 h-8 text-slate-600 group-hover:text-[#f15b24] transition-colors" />
               </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-2 group-hover:text-[#eb5f2a] transition-colors">
+              <h3 className="text-xl font-semibold text-slate-900 mb-2 group-hover:text-[#f15b24] transition-colors">
                 Pour quelqu’un d’autre
               </h3>
               <p className="text-slate-600 text-sm">
@@ -1020,8 +1020,8 @@ export default function DiagnosticPage() {
 
             <div className="space-y-5 mb-10">
               <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50">
-                <div className="w-10 h-10 rounded-lg bg-[#eb5f2a]/20 flex items-center justify-center flex-shrink-0">
-                  <span className="text-[#eb5f2a] font-bold">{instructionsTotalQuestions}</span>
+                <div className="w-10 h-10 rounded-lg bg-[#f15b24]/20 flex items-center justify-center flex-shrink-0">
+                  <span className="text-[#f15b24] font-bold">{instructionsTotalQuestions}</span>
                 </div>
                 <div>
                   <h4 className="text-slate-900 font-medium">{instructionsTotalQuestions} questions</h4>
@@ -1030,8 +1030,8 @@ export default function DiagnosticPage() {
               </div>
 
               <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50">
-                <div className="w-10 h-10 rounded-lg bg-[#eb5f2a]/10 flex items-center justify-center flex-shrink-0">
-                  <CheckCircle className="w-5 h-5 text-[#eb5f2a]" />
+                <div className="w-10 h-10 rounded-lg bg-[#f15b24]/10 flex items-center justify-center flex-shrink-0">
+                  <CheckCircle className="w-5 h-5 text-[#f15b24]" />
                 </div>
                 <div>
                   <h4 className="text-slate-900 font-medium">Environ {estimatedMinutes} minutes</h4>
@@ -1040,8 +1040,8 @@ export default function DiagnosticPage() {
               </div>
 
               <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50">
-                <div className="w-10 h-10 rounded-lg bg-[#eb5f2a]/10 flex items-center justify-center flex-shrink-0">
-                  <Shield className="w-5 h-5 text-[#eb5f2a]" />
+                <div className="w-10 h-10 rounded-lg bg-[#f15b24]/10 flex items-center justify-center flex-shrink-0">
+                  <Shield className="w-5 h-5 text-[#f15b24]" />
                 </div>
                 <div>
                   <h4 className="text-slate-900 font-medium">Totalement anonyme</h4>
@@ -1132,7 +1132,7 @@ export default function DiagnosticPage() {
                   <p className="text-2xl mb-4" style={{ color: alertLevel.color }}>
                     {alertLevel.subtitle}
                   </p>
-                  
+
                   <div className="text-6xl font-bold mb-4" style={{ color: alertLevel.color }}>
                     {totalScore}
                     <span className="text-2xl text-slate-400">/{maxScore}</span>
@@ -1154,9 +1154,9 @@ export default function DiagnosticPage() {
                       catScore && catScore.maxScore
                         ? (catScore.score / catScore.maxScore) * 100
                         : 0;
-                    const levelColor = catScore?.level === 'safe' ? '#64748b' : catScore?.level === 'warning' ? '#eb5f2a' : '#ef4444';
+                    const levelColor = catScore?.level === 'safe' ? '#64748b' : catScore?.level === 'warning' ? '#f15b24' : '#ef4444';
                     const CategoryIcon = resolveCategoryIcon(category);
-                    
+
                     return (
                       <motion.div
                         key={category.id}
@@ -1167,8 +1167,8 @@ export default function DiagnosticPage() {
                       >
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-[#eb5f2a]/10 flex items-center justify-center">
-                              <CategoryIcon className="w-4 h-4 text-[#eb5f2a]" />
+                            <div className="w-8 h-8 rounded-lg bg-[#f15b24]/10 flex items-center justify-center">
+                              <CategoryIcon className="w-4 h-4 text-[#f15b24]" />
                             </div>
                             <span className="text-slate-900 font-medium">{category.name}</span>
                           </div>
@@ -1177,7 +1177,7 @@ export default function DiagnosticPage() {
                           </span>
                         </div>
                         <div className="progress-bar">
-                          <motion.div 
+                          <motion.div
                             className="progress-fill"
                             style={{ backgroundColor: levelColor }}
                             initial={{ width: 0 }}
@@ -1255,7 +1255,7 @@ export default function DiagnosticPage() {
               <div className="glass-card p-5 md:p-8">
                 <h2 className="text-xl font-bold text-slate-900 mb-4">Ressources d’aide</h2>
                 <p className="text-slate-600 mb-8">
-                  Quelle que soit votre situation, des structures existent pour vous accompagner. 
+                  Quelle que soit votre situation, des structures existent pour vous accompagner.
                   N’hésitez pas à les contacter.
                 </p>
                 <Link
@@ -1312,7 +1312,7 @@ export default function DiagnosticPage() {
             </span>
           </div>
           <div className="progress-bar">
-            <motion.div 
+            <motion.div
               className="progress-fill"
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
@@ -1332,7 +1332,7 @@ export default function DiagnosticPage() {
             className="glass-card p-5 md:p-8"
           >
             <h2 className="text-xl md:text-2xl font-semibold text-slate-900 mb-6 leading-relaxed">
-              {mode === 'other' 
+              {mode === 'other'
                 ? currentQuestion.text.replace(/vous/gi, 'cette personne').replace(/votre/gi, 'sa').replace(/vos/gi, 'ses')
                 : currentQuestion.text
               }
@@ -1388,10 +1388,10 @@ export default function DiagnosticPage() {
             <div
               key={cat.id}
               className={`w-3 h-3 rounded-full transition-all ${
-                index < currentCategoryIndex 
-                  ? 'bg-[#eb5f2a]' 
-                  : index === currentCategoryIndex 
-                    ? 'bg-[#eb5f2a]/50 ring-2 ring-[#eb5f2a] ring-offset-2 ring-offset-transparent' 
+                index < currentCategoryIndex
+                  ? 'bg-[#f15b24]'
+                  : index === currentCategoryIndex
+                    ? 'bg-[#f15b24]/50 ring-2 ring-[#f15b24] ring-offset-2 ring-offset-transparent'
                     : 'bg-slate-200'
               }`}
               title={cat.name}
