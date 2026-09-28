@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
+import LigueLinks from '@/components/LigueLinks';
 import {
   Heart,
   Users,
@@ -83,7 +84,7 @@ export default function AboutPage() {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen overflow-x-clip">
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-[#f15b24]/5 via-white to-slate-50">
         <div className="absolute inset-0 overflow-hidden">
@@ -466,6 +467,8 @@ export default function AboutPage() {
                 Niamey, Niger
               </div>
             </div>
+            <h3 className="mt-10 text-lg font-bold text-slate-900">Retrouvez la Ligue en ligne</h3>
+            <LigueLinks />
           </motion.div>
         </div>
       </section>

@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Heart, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
+import { Heart, Mail, Phone, MapPin } from 'lucide-react';
+import LigueLinks from './LigueLinks';
 import { useSiteConfig } from '@/hooks/useSiteConfig';
 
 export default function Footer() {
@@ -54,27 +55,7 @@ export default function Footer() {
                 {siteConfig.siteDescription}
               </p>
 
-              {/* Social Links */}
-              <div className="flex items-center gap-4">
-                {[
-                  { icon: Facebook, label: 'Facebook', href: siteConfig.facebookUrl },
-                  { icon: Twitter, label: 'X / Twitter', href: siteConfig.twitterUrl },
-                  { icon: Instagram, label: 'Instagram', href: siteConfig.instagramUrl },
-                  { icon: Youtube, label: 'YouTube', href: siteConfig.youtubeUrl },
-                ].filter((social) => social.href).map((social, index) => (
-                    <motion.a
-                      key={index}
-                      href={social.href}
-                      aria-label={social.label}
-                      target="_blank" rel="noopener noreferrer"
-                      className="w-10 h-10 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-[#f15b24] hover:border-[#f15b24]/50 transition-all"
-                      whileHover={{ scale: 1.1, y: -2 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                    <social.icon className="w-5 h-5" />
-                  </motion.a>
-                ))}
-              </div>
+
             </div>
 
             {/* Quick Links */}
@@ -132,6 +113,7 @@ export default function Footer() {
                   </li>
                 )}
               </ul>
+              <LigueLinks compact />
             </div>
           </div>
 
