@@ -164,7 +164,7 @@ export default function Home() {
               </h1>
 
               <p className="text-lg text-slate-600 mb-8 max-w-xl mx-auto leading-relaxed">
-                ALERTE VIOLENCE est la première plateforme numérique d&apos;autodiagnostic des violences
+                Sister for Sister est la première plateforme numérique d&apos;autodiagnostic des violences
                 au Niger. À travers plusieurs outils spécialisés, évaluez votre
                 situation ou celle d&apos;un proche de manière anonyme et confidentielle.
               </p>
