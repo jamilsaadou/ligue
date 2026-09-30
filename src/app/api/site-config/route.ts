@@ -5,7 +5,7 @@ export async function GET() {
   try {
     const config = await getPublicSiteConfig();
     return NextResponse.json(config, {
-      headers: { 'Cache-Control': 'public, max-age=60, stale-while-revalidate=300' }
+      headers: { 'Cache-Control': 'no-store' }
     });
   } catch (error) {
     console.error('Public site config error:', error);

@@ -23,6 +23,7 @@ export default async function AdminSettingsPage() {
 
       <SettingsForm
         initial={{
+          publicAuthEnabled: settingsMap.publicAuthEnabled === true,
           siteName: (settingsMap.siteName as string) || DEFAULT_SITE_CONFIG.siteName,
           siteTagline:
             (settingsMap.siteTagline as string) || DEFAULT_SITE_CONFIG.siteTagline,

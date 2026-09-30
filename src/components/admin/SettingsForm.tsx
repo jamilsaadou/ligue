@@ -20,6 +20,7 @@ import {
 import { refreshSiteConfig } from '@/hooks/useSiteConfig';
 
 export type AdminSettings = {
+  publicAuthEnabled: boolean;
   siteName: string;
   siteTagline: string;
   organizationName: string;
@@ -172,6 +173,13 @@ export default function SettingsForm({ initial }: { initial: AdminSettings }) {
             description="Informations affichées dans l’en-tête et le pied de page du site."
           />
           <div className="p-6 md:p-8 space-y-8">
+            <div className="rounded-xl border border-orange-200 bg-orange-50 p-5">
+              <label className="flex items-start gap-3 font-semibold text-slate-900">
+                <input type="checkbox" checked={form.publicAuthEnabled} onChange={(event) => update('publicAuthEnabled', event.target.checked)} className="mt-1 h-5 w-5 accent-orange-700" aria-describedby="public-auth-help" />
+                Autoriser les inscriptions et connexions publiques
+              </label>
+              <p id="public-auth-help" className="mt-2 text-sm text-slate-600">Lorsque cette option est désactivée, les boutons Connexion et Inscription sont masqués et les comptes publics ne peuvent ni s’inscrire ni se connecter. Les administrateurs conservent leur accès via /login. Les diagnostics restent accessibles sans compte. Enregistrez pour appliquer le changement.</p>
+            </div>
             <div className="grid gap-6 lg:grid-cols-[240px_1fr] lg:items-start">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-3">Logo du site</label>

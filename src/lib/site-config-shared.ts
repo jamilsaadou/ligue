@@ -1,4 +1,5 @@
 export type PublicSiteConfig = {
+  publicAuthEnabled: boolean;
   siteName: string;
   siteTagline: string;
   organizationName: string;
@@ -19,6 +20,7 @@ export type PublicSiteConfig = {
 };
 
 export const DEFAULT_SITE_CONFIG: PublicSiteConfig = {
+  publicAuthEnabled: false,
   siteName: 'ALERTE VIOLENCE',
   siteTagline: 'Diagnostiquer pour mieux protéger',
   organizationName: 'Ligue Nigérienne des Droits des Femmes (LNDF)',

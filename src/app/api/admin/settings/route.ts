@@ -34,6 +34,7 @@ const STRING_LIMITS: Record<string, number> = {
 };
 
 const BOOLEAN_KEYS = [
+  'publicAuthEnabled',
   'smtpEnabled',
   'notifyOnDiagnostic',
   'smtpSecure',

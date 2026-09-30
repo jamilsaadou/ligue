@@ -1,3 +1,4 @@
+import { canAuthenticate } from './public-auth';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
@@ -86,7 +87,7 @@ export const getSession = async () => {
     select: { email: true, role: true, isActive: true, adminModules: true }
   });
 
-  if (!user?.isActive) return null;
+  if (!user?.isActive || !await canAuthenticate(user.role)) return null;
 
   return {
     ...session,

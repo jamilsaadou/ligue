@@ -29,9 +29,12 @@ export const useSiteConfig = () => {
       if (active) setConfig(nextConfig);
     });
     applyConfig();
+    const refreshOnFocus = () => { siteConfigPromise = null; void applyConfig(); };
+    window.addEventListener('focus', refreshOnFocus);
     window.addEventListener('site-config-updated', applyConfig);
     return () => {
       active = false;
+      window.removeEventListener('focus', refreshOnFocus);
       window.removeEventListener('site-config-updated', applyConfig);
     };
   }, []);

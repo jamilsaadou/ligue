@@ -5,6 +5,7 @@ import {
   getSessionCookieOptions,
   verifyCredentials
 } from '@/lib/auth';
+import { canAuthenticate } from '@/lib/public-auth';
 import { prisma } from '@/lib/prisma';
 
 type LoginPayload = {
@@ -38,6 +39,13 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { ok: false, message: 'Identifiants invalides.' },
         { status: 401 }
+      );
+    }
+
+    if (!await canAuthenticate(result.role)) {
+      return NextResponse.json(
+        { ok: false, message: 'Les connexions publiques sont temporairement désactivées. Cet accès est réservé aux administrateurs.' },
+        { status: 403 }
       );
     }
 

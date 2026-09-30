@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { isPublicAuthEnabled } from '@/lib/public-auth';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import {
@@ -34,6 +35,12 @@ export async function POST(request: Request) {
   }
 
   try {
+    if (!await isPublicAuthEnabled()) {
+      return NextResponse.json(
+        { ok: false, message: 'Les inscriptions sont temporairement désactivées.' },
+        { status: 403 }
+      );
+    }
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
       return NextResponse.json(

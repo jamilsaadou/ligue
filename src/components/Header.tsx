@@ -88,7 +88,7 @@ export default function Header() {
                 <div className="w-9 h-9 rounded-full bg-slate-200 animate-pulse" />
               ) : user ? (
                 <UserMenu user={user} />
-              ) : (
+              ) : siteConfig.publicAuthEnabled ? (
                 <>
                   <Link
                     href="/login"
@@ -105,7 +105,7 @@ export default function Header() {
                     Inscription
                   </Link>
                 </>
-              )}
+              ) : null}
 
               <motion.a
                 href={emergencyHref}
@@ -165,7 +165,7 @@ export default function Header() {
               ))}
 
               {/* Auth section for mobile */}
-              <div className="mt-4 pt-4 border-t border-slate-200">
+              {(isLoading || user || siteConfig.publicAuthEnabled) && <div className="mt-4 pt-4 border-t border-slate-200">
                 {isLoading ? (
                   <div className="h-12 bg-slate-200 rounded-xl animate-pulse" />
                 ) : user ? (
@@ -229,7 +229,7 @@ export default function Header() {
                       </button>
                     </motion.div>
                   </>
-                ) : (
+                ) : siteConfig.publicAuthEnabled ? (
                   <>
                     <motion.div
                       initial={{ opacity: 0, x: -20 }}
@@ -260,8 +260,8 @@ export default function Header() {
                       </Link>
                     </motion.div>
                   </>
-                )}
-              </div>
+                ) : null}
+              </div>}
 
               <motion.a
                 href={emergencyHref}

@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { UserPlus, Mail, ShieldCheck, ArrowRight, User } from 'lucide-react';
+import { useSiteConfig } from '@/hooks/useSiteConfig';
 import { useAuth } from '@/components/AuthProvider';
 
 export default function InscriptionPage() {
   const router = useRouter();
+  const { publicAuthEnabled } = useSiteConfig();
   const { refresh } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -46,6 +48,14 @@ export default function InscriptionPage() {
       setIsLoading(false);
     }
   };
+
+  if (!publicAuthEnabled) {
+    return <section className="page-container py-16 text-center">
+      <h1 className="text-3xl font-bold text-slate-900">Inscriptions temporairement fermées</h1>
+      <p className="my-5 text-slate-600">Les diagnostics et les ressources restent accessibles sans compte.</p>
+      <Link href="/diagnostic" className="glass-button inline-flex">Accéder aux diagnostics</Link>
+    </section>;
+  }
 
   return (
     <div className="min-h-[calc(100vh-80px)] px-4 py-10 flex items-center justify-center">

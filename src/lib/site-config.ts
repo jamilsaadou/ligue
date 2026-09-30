@@ -12,6 +12,7 @@ export const getPublicSiteConfig = async (): Promise<PublicSiteConfig> => {
   const settings = await prisma.setting.findMany({ where: { key: { in: keys } } });
   const values = new Map(settings.map((setting) => [setting.key, setting.value]));
   return {
+    publicAuthEnabled: values.get('publicAuthEnabled') === true,
     siteName: valueAsString(values.get('siteName'), DEFAULT_SITE_CONFIG.siteName),
     siteTagline: valueAsString(values.get('siteTagline'), DEFAULT_SITE_CONFIG.siteTagline),
     organizationName: valueAsString(

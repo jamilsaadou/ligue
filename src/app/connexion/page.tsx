@@ -5,10 +5,12 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Lock, Mail, ArrowRight, ShieldCheck } from 'lucide-react';
+import { useSiteConfig } from '@/hooks/useSiteConfig';
 import { useAuth } from '@/components/AuthProvider';
 
 export default function ConnexionPage() {
   const router = useRouter();
+  const { publicAuthEnabled } = useSiteConfig();
   const { refresh } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -65,10 +67,10 @@ export default function ConnexionPage() {
               <Lock className="w-7 h-7 text-white" />
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3">
-              Connexion
+              {publicAuthEnabled ? 'Connexion' : 'Connexion administrateur'}
             </h1>
             <p className="text-slate-600 max-w-md mx-auto">
-              Accédez à votre espace. Les administrateurs pourront consulter les statistiques.
+              {publicAuthEnabled ? 'Accédez à votre espace.' : 'Cet accès est réservé aux administrateurs de la plateforme.'}
             </p>
           </div>
 
@@ -126,11 +128,11 @@ export default function ConnexionPage() {
           </form>
 
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500">
-            <span>Vous n’avez pas de compte ?</span>
+            {publicAuthEnabled && <span>Vous n’avez pas de compte ?</span>}
             <div className="flex items-center gap-4">
-              <Link href="/inscription" className="text-[#f15b24] font-medium hover:underline">
+              {publicAuthEnabled && <Link href="/inscription" className="text-[#f15b24] font-medium hover:underline">
                 Créer un compte
-              </Link>
+              </Link>}
               <Link href="/" className="text-[#f15b24] font-medium hover:underline">
                 Retour à l’accueil
               </Link>
