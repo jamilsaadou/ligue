@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import {
-  getRequestSession,
-  normalizeClientContext,
+  anonymousDiagnosticContext,
   type ClientContext
 } from '@/lib/analytics-server';
 
@@ -39,8 +38,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false, message: 'Diagnostic introuvable.' }, { status: 404 });
     }
 
-    const session = getRequestSession(request);
-    const context = normalizeClientContext(request, payload);
+    const context = anonymousDiagnosticContext(request, payload);
     const existing = await prisma.diagnosticAttempt.findUnique({
       where: { id: payload.attemptId }
     });
@@ -51,7 +49,7 @@ export async function POST(request: Request) {
           data: {
             id: payload.attemptId!,
             diagnosticId: payload.diagnosticId!,
-            userId: session?.id || null,
+            userId: null,
             sessionId: context.sessionId,
             mode: payload.mode!,
             totalQuestions: Number(payload.totalQuestions),
@@ -72,7 +70,7 @@ export async function POST(request: Request) {
             diagnosticId: payload.diagnosticId,
             attemptId: payload.attemptId,
             sessionId: context.sessionId,
-            userId: session?.id || null,
+            userId: null,
             referrer: context.referrer,
             country: context.country,
             city: context.city,
@@ -124,8 +122,7 @@ export async function PATCH(request: Request) {
     });
 
     if (attempt.count && payload.milestone) {
-      const session = getRequestSession(request);
-      const context = normalizeClientContext(request, payload);
+      const context = anonymousDiagnosticContext(request, payload);
       await prisma.trackingEvent.create({
         data: {
           eventName: 'diagnostic_progress',
@@ -134,7 +131,7 @@ export async function PATCH(request: Request) {
           diagnosticId: payload.diagnosticId,
           attemptId: payload.attemptId,
           sessionId: context.sessionId,
-          userId: session?.id || null,
+          userId: null,
           country: context.country,
           deviceType: context.deviceType,
           browser: context.browser,

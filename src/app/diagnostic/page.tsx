@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import CategoryIntroduction from '@/components/CategoryIntroduction';
+import LigueContacts from '@/components/LigueContacts';
+import { diagnosticWelcome } from '@/data/category-introductions';
 import DiagnosticResultShare from '@/components/DiagnosticResultShare';
 import {
   getClientAnalyticsContext,
@@ -98,6 +101,8 @@ interface SavedProgress {
   currentQuestionIndex: number;
   answers: Record<string, number>;
   isStarted: boolean;
+  selectedCategoryIds?: string[];
+  showCategoryIntro?: boolean;
   showResults?: boolean;
   attemptId?: string;
   startedAt?: string;
@@ -107,7 +112,7 @@ interface SavedProgress {
 }
 
 const STORAGE_KEY = 'violentometre_diagnostic_progress';
-const STORAGE_VERSION = 2;
+const STORAGE_VERSION = 3;
 const STORAGE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const DIAGNOSTIC_FALLBACK_ID = 'static';
 
@@ -202,7 +207,7 @@ const getAlertLevelForScore = (score: number, maxScore: number) => {
       subtitle: 'Profitez !',
       message:
         'Votre relation semble saine et équilibrée. Continuez à cultiver le respect mutuel, la communication ouverte et la confiance.',
-      color: '#64748b',
+      color: '#16a34a',
       bgClass: 'level-safe'
     };
   }
@@ -241,8 +246,6 @@ const getCategoryMaxPoints = (category: DiagnosticCategory) =>
     return acc + (Number.isFinite(maxOption) ? maxOption : 0);
   }, 0);
 
-const getDiagnosticMaxScore = (data: DiagnosticData) =>
-  data.categories.reduce((acc, category) => acc + getCategoryMaxPoints(category), 0);
 
 export default function DiagnosticPage() {
   const [diagnosticList, setDiagnosticList] = useState<DiagnosticListItem[]>([]);
@@ -254,6 +257,9 @@ export default function DiagnosticPage() {
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[] | null>(null);
+  const [showCategoryIntro, setShowCategoryIntro] = useState(false);
+  const answerTransitionRef = useRef(false);
   const [showResults, setShowResults] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
   const [showResumeModal, setShowResumeModal] = useState(false);
@@ -335,10 +341,11 @@ export default function DiagnosticPage() {
       return;
     }
 
-    const parsedCategory = targetDiagnostic.categories[parsed.currentCategoryIndex];
+    const savedCategories = targetDiagnostic.categories.filter((category) => !parsed.selectedCategoryIds || parsed.selectedCategoryIds.includes(category.id));
+    const parsedCategory = savedCategories[parsed.currentCategoryIndex];
     const isValidProgress =
       parsed.currentCategoryIndex >= 0 &&
-      parsed.currentCategoryIndex < targetDiagnostic.categories.length &&
+      parsed.currentCategoryIndex < savedCategories.length &&
       parsed.currentQuestionIndex >= 0 &&
       Boolean(parsedCategory) &&
       parsed.currentQuestionIndex < parsedCategory.questions.length;
@@ -367,6 +374,8 @@ export default function DiagnosticPage() {
         currentQuestionIndex,
         answers,
         isStarted,
+        selectedCategoryIds: selectedCategoryIds || undefined,
+        showCategoryIntro,
         showResults: false,
         attemptId: attemptId || undefined,
         startedAt: attemptStartedAt || undefined,
@@ -376,6 +385,8 @@ export default function DiagnosticPage() {
     }
   }, [
     answers,
+    selectedCategoryIds,
+    showCategoryIntro,
     currentCategoryIndex,
     currentQuestionIndex,
     diagnostic,
@@ -405,11 +416,13 @@ export default function DiagnosticPage() {
         setShowResumeModal(false);
         return;
       }
-      const resumedAttemptId = savedProgress.attemptId || crypto.randomUUID();
+      const resumedAttemptId = savedProgress.version === STORAGE_VERSION
+        ? savedProgress.attemptId || crypto.randomUUID()
+        : crypto.randomUUID();
       const resumedStartedAt = savedProgress.startedAt || new Date().toISOString();
       const resumedAnswersCount = Object.keys(savedProgress.answers).length;
       const resumedTotalQuestions = resumedDiagnostic
-        ? resumedDiagnostic.categories.reduce(
+        ? resumedDiagnostic.categories.filter((category) => !savedProgress.selectedCategoryIds || savedProgress.selectedCategoryIds.includes(category.id)).reduce(
             (total, category) => total + category.questions.length,
             0
           )
@@ -418,6 +431,8 @@ export default function DiagnosticPage() {
       setSelectedDiagnosticId(savedProgress.diagnosticId);
       setDiagnostic(resumedDiagnostic);
       setMode(savedProgress.mode);
+      setSelectedCategoryIds(savedProgress.selectedCategoryIds || null);
+      setShowCategoryIntro(Boolean(savedProgress.showCategoryIntro));
       setCurrentCategoryIndex(savedProgress.currentCategoryIndex);
       setCurrentQuestionIndex(savedProgress.currentQuestionIndex);
       setAnswers(savedProgress.answers);
@@ -473,7 +488,7 @@ export default function DiagnosticPage() {
     });
   };
 
-  const categories = useMemo(() => diagnostic?.categories ?? [], [diagnostic]);
+  const categories = useMemo(() => (diagnostic?.categories ?? []).filter((category) => !selectedCategoryIds || selectedCategoryIds.includes(category.id)), [diagnostic, selectedCategoryIds]);
   const currentCategory = categories[currentCategoryIndex];
   const currentQuestion = currentCategory?.questions[currentQuestionIndex];
   const CurrentCategoryIcon = resolveCategoryIcon(currentCategory);
@@ -510,6 +525,7 @@ export default function DiagnosticPage() {
     setAttemptStartedAt(startedAt);
     trackedMilestonesRef.current = new Set();
     setIsStarted(true);
+    setShowCategoryIntro(false);
 
     if (diagnostic.id === DIAGNOSTIC_FALLBACK_ID) {
       sendAnalyticsEvent({
@@ -549,7 +565,7 @@ export default function DiagnosticPage() {
       hasSubmittedRef.current = true;
       try {
         const totalScore = calculateTotalScore();
-        const maxScore = getDiagnosticMaxScore(diagnostic);
+        const maxScore = categories.reduce((total, category) => total + getCategoryMaxPoints(category), 0);
         const categoryScores = calculateCategoryScores();
         const alertLevel = getAlertLevelForScore(totalScore, maxScore);
 
@@ -595,6 +611,7 @@ export default function DiagnosticPage() {
     attemptStartedAt,
     calculateCategoryScores,
     calculateTotalScore,
+    categories,
     diagnostic,
     mode,
     showResults
@@ -644,17 +661,20 @@ export default function DiagnosticPage() {
   }
 
   const handleAnswer = (questionId: string, points: number) => {
-    if (!currentCategory || !diagnostic) return;
+    if (!currentCategory || !diagnostic || answerTransitionRef.current) return;
+    answerTransitionRef.current = true;
     const nextAnswers = { ...answers, [questionId]: points };
     setAnswers(nextAnswers);
 
     // Auto-advance to next question after a short delay
     setTimeout(() => {
+      answerTransitionRef.current = false;
       if (currentQuestionIndex < currentCategory.questions.length - 1) {
         setCurrentQuestionIndex(prev => prev + 1);
       } else if (currentCategoryIndex < categories.length - 1) {
         setCurrentCategoryIndex(prev => prev + 1);
         setCurrentQuestionIndex(0);
+        setShowCategoryIntro(true);
       } else {
         const completedAt = new Date().toISOString();
         const completedProgress: SavedProgress = {
@@ -666,6 +686,8 @@ export default function DiagnosticPage() {
           currentQuestionIndex,
           answers: nextAnswers,
           isStarted: true,
+          selectedCategoryIds: selectedCategoryIds || undefined,
+          showCategoryIntro: false,
           showResults: true,
           attemptId: attemptId || undefined,
           startedAt: attemptStartedAt || undefined,
@@ -680,11 +702,11 @@ export default function DiagnosticPage() {
   };
 
   const handlePrevious = () => {
+    if (answerTransitionRef.current) return;
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(prev => prev - 1);
-    } else if (currentCategoryIndex > 0) {
-      setCurrentCategoryIndex(prev => prev - 1);
-      setCurrentQuestionIndex(categories[currentCategoryIndex - 1].questions.length - 1);
+    } else {
+      setShowCategoryIntro(true);
     }
   };
 
@@ -693,6 +715,8 @@ export default function DiagnosticPage() {
     setSelectedDiagnosticId(null);
     setDiagnostic(null);
     setMode(null);
+    setSelectedCategoryIds(null);
+    setShowCategoryIntro(false);
     setCurrentCategoryIndex(0);
     setCurrentQuestionIndex(0);
     setAnswers({});
@@ -704,7 +728,7 @@ export default function DiagnosticPage() {
     hasSubmittedRef.current = false;
   };
 
-  const canGoBack = currentCategoryIndex > 0 || currentQuestionIndex > 0;
+  const canGoBack = true;
 
   // Resume Modal
   if (showResumeModal && savedProgress) {
@@ -714,7 +738,7 @@ export default function DiagnosticPage() {
       : diagnosticList.find(d => d.id === savedProgress.diagnosticId) ||
         savedProgress.diagnosticSnapshot;
     const savedTotalQuestions = savedDiag
-      ? savedDiag.categories.reduce((acc, cat) => acc + cat.questions.length, 0)
+      ? savedDiag.categories.filter((category) => !savedProgress.selectedCategoryIds || savedProgress.selectedCategoryIds.includes(category.id)).reduce((acc, cat) => acc + cat.questions.length, 0)
       : Object.keys(savedProgress.answers).length;
 
     return (
@@ -971,6 +995,7 @@ export default function DiagnosticPage() {
               className="glass-button-outline flex items-center gap-2"
               onClick={() => {
                 setSelectedDiagnosticId(null);
+                setSelectedCategoryIds(null);
                 setDiagnostic(null);
               }}
               whileHover={{ scale: 1.02 }}
@@ -985,93 +1010,52 @@ export default function DiagnosticPage() {
     );
   }
 
-  // Instructions Screen
+  // Category introduction appears before the first question of each selected category.
+  if (showCategoryIntro && currentCategory && !showResults) {
+    return <CategoryIntroduction
+      name={currentCategory.name}
+      description={currentCategory.description}
+      onStart={() => {
+        if (!isStarted) handleBeginDiagnostic();
+        else setShowCategoryIntro(false);
+      }}
+      onBack={() => {
+        setShowCategoryIntro(false);
+        if (isStarted && currentCategoryIndex > 0) {
+          setCurrentCategoryIndex(currentCategoryIndex - 1);
+          setCurrentQuestionIndex(categories[currentCategoryIndex - 1].questions.length - 1);
+        } else {
+          setIsStarted(false);
+        }
+      }}
+    />;
+  }
+
   if (!isStarted && diagnostic) {
-    const instructionsTotalQuestions = diagnostic.categories.reduce(
-      (acc, cat) => acc + cat.questions.length,
-      0
-    );
-    const instructionsTotalCategories = diagnostic.categories.length;
-    const estimatedMinutes = Math.max(5, Math.ceil(instructionsTotalQuestions / 4));
-
     return (
-      <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-8">
-        <motion.div
-          className="max-w-2xl w-full"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <div className="glass-card p-6 md:p-10">
-            <div className="text-center mb-8">
-              <div className="category-badge mb-4 inline-flex">
-                {mode === 'self' ? <User className="w-4 h-4" /> : <Users className="w-4 h-4" />}
-                {mode === 'self' ? 'Mode personnel' : 'Mode tiers'}
-              </div>
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4">
-                Avant de commencer
-              </h1>
-              <p className="text-slate-600">
-                {mode === 'self'
-                  ? 'Répondez honnêtement aux questions suivantes en pensant à votre relation actuelle.'
-                  : 'Répondez aux questions en pensant à la situation de la personne que vous souhaitez aider.'
-                }
-              </p>
-            </div>
-
-            <div className="space-y-5 mb-10">
-              <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50">
-                <div className="w-10 h-10 rounded-lg bg-[#f15b24]/20 flex items-center justify-center flex-shrink-0">
-                  <span className="text-[#f15b24] font-bold">{instructionsTotalQuestions}</span>
-                </div>
-                <div>
-                  <h4 className="text-slate-900 font-medium">{instructionsTotalQuestions} questions</h4>
-                  <p className="text-slate-500 text-sm">Réparties en {instructionsTotalCategories} catégories thématiques</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50">
-                <div className="w-10 h-10 rounded-lg bg-[#f15b24]/10 flex items-center justify-center flex-shrink-0">
-                  <CheckCircle className="w-5 h-5 text-[#f15b24]" />
-                </div>
-                <div>
-                  <h4 className="text-slate-900 font-medium">Environ {estimatedMinutes} minutes</h4>
-                  <p className="text-slate-500 text-sm">Prenez le temps de bien réfléchir à chaque question</p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50">
-                <div className="w-10 h-10 rounded-lg bg-[#f15b24]/10 flex items-center justify-center flex-shrink-0">
-                  <Shield className="w-5 h-5 text-[#f15b24]" />
-                </div>
-                <div>
-                  <h4 className="text-slate-900 font-medium">Totalement anonyme</h4>
-                  <p className="text-slate-500 text-sm">Aucune identité n’est demandée</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-6">
-              <motion.button
-                className="glass-button flex-1 flex items-center justify-center gap-2"
-                onClick={handleBeginDiagnostic}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                Commencer le diagnostic
-                <ArrowRight className="w-5 h-5" />
-              </motion.button>
-              <motion.button
-                className="glass-button-outline flex items-center justify-center gap-2"
-                onClick={() => setMode(null)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <ArrowLeft className="w-5 h-5" />
-                Retour
-              </motion.button>
-            </div>
+      <div className="min-h-[calc(100vh-80px)] px-4 py-8 flex justify-center">
+        <section className="w-full max-w-3xl" aria-labelledby="category-selection-title">
+          <h1 id="category-selection-title" className="text-2xl md:text-3xl font-bold text-slate-900">Qu’est-ce qui vous préoccupe en ce moment ?</h1>
+          <p className="mt-4 text-slate-600">{diagnosticWelcome.split('? ')[1]}</p>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            {diagnostic.categories.filter((category) => category.questions.length > 0).map((category) => (
+              <label key={category.id} className="glass-card p-5 flex items-start gap-3 cursor-pointer">
+                <input type="checkbox" className="mt-1 h-5 w-5 accent-[#f15b24]" checked={selectedCategoryIds?.includes(category.id) ?? false}
+                  onChange={(event) => setSelectedCategoryIds((ids) => event.target.checked ? [...(ids || []), category.id] : (ids || []).filter((id) => id !== category.id))} />
+                <span><span className="font-semibold text-slate-900">{category.name}</span><span className="mt-2 block text-sm text-slate-600">{category.description}</span></span>
+              </label>
+            ))}
           </div>
-        </motion.div>
+          <div className="mt-8 flex flex-col sm:flex-row gap-4">
+            <button className="glass-button disabled:opacity-50 disabled:cursor-not-allowed" disabled={!selectedCategoryIds?.length} onClick={() => {
+              setCurrentCategoryIndex(0);
+              setCurrentQuestionIndex(0);
+              setAnswers({});
+              setShowCategoryIntro(true);
+            }}>Continuer</button>
+            <button className="glass-button-outline" onClick={() => setMode(null)}>Retour</button>
+          </div>
+        </section>
       </div>
     );
   }
@@ -1099,7 +1083,7 @@ export default function DiagnosticPage() {
   // Results Screen
   if (showResults && diagnostic) {
     const totalScore = calculateTotalScore();
-    const maxScore = getDiagnosticMaxScore(diagnostic);
+    const maxScore = categories.reduce((total, category) => total + getCategoryMaxPoints(category), 0);
     const alertLevel = getAlertLevelForScore(totalScore, maxScore);
     const categoryScores = calculateCategoryScores();
 
@@ -1154,7 +1138,7 @@ export default function DiagnosticPage() {
                       catScore && catScore.maxScore
                         ? (catScore.score / catScore.maxScore) * 100
                         : 0;
-                    const levelColor = catScore?.level === 'safe' ? '#64748b' : catScore?.level === 'warning' ? '#f15b24' : '#ef4444';
+                    const levelColor = catScore?.level === 'safe' ? '#16a34a' : catScore?.level === 'warning' ? '#f15b24' : '#ef4444';
                     const CategoryIcon = resolveCategoryIcon(category);
 
                     return (
@@ -1255,9 +1239,11 @@ export default function DiagnosticPage() {
               <div className="glass-card p-5 md:p-8">
                 <h2 className="text-xl font-bold text-slate-900 mb-4">Ressources d’aide</h2>
                 <p className="text-slate-600 mb-8">
-                  Quelle que soit votre situation, des structures existent pour vous accompagner.
-                  N’hésitez pas à les contacter.
+                  Quelle que soit votre situation, la Ligue Nigérienne des Droits des Femmes est là pour vous.
+                  <br />
+                  N’hésitez pas à nous contacter.
                 </p>
+                <div className="mb-8"><LigueContacts /></div>
                 <Link
                   href="/ressources"
                   className="glass-button inline-flex items-center gap-2"

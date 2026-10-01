@@ -627,7 +627,7 @@ function Heatmap({
 
 function exportData(data: AnalyticsDashboardData) {
   const rows: Array<Array<string | number>> = [
-    ["Statistiques ALERTE VIOLENCE", "Export agrégé"],
+    ["Statistiques Sister for Sister", "Export agrégé"],
     ["Du (UTC)", data.period.from],
     ["Au (UTC)", data.period.to],
     [

@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import {
   DEFAULT_SITE_CONFIG,
+  normalizeSiteBranding,
   type PublicSiteConfig
 } from '@/lib/site-config-shared';
 
@@ -10,10 +11,15 @@ const valueAsString = (value: unknown, fallback: string) =>
 export const getPublicSiteConfig = async (): Promise<PublicSiteConfig> => {
   const keys = Object.keys(DEFAULT_SITE_CONFIG);
   const settings = await prisma.setting.findMany({ where: { key: { in: keys } } });
-  const values = new Map(settings.map((setting) => [setting.key, setting.value]));
+  const values = new Map(settings.map((setting) => [
+    setting.key,
+    typeof setting.value === 'string' && ['siteName', 'siteTagline', 'organizationName', 'siteDescription'].includes(setting.key)
+      ? normalizeSiteBranding(setting.value)
+      : setting.value
+  ]));
   return {
     publicAuthEnabled: values.get('publicAuthEnabled') === true,
-    siteName: valueAsString(values.get('siteName'), DEFAULT_SITE_CONFIG.siteName),
+    siteName: normalizeSiteBranding(valueAsString(values.get('siteName'), DEFAULT_SITE_CONFIG.siteName)),
     siteTagline: valueAsString(values.get('siteTagline'), DEFAULT_SITE_CONFIG.siteTagline),
     organizationName: valueAsString(
       values.get('organizationName'),

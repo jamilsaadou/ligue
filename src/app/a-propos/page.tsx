@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -18,6 +19,30 @@ import {
 } from 'lucide-react';
 
 export default function AboutPage() {
+  const [diagnosticStats, setDiagnosticStats] = useState<{ questions: number; categories: number } | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const loadStats = async () => {
+      try {
+        const response = await fetch('/api/diagnostic/list', { signal: controller.signal });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!data.ok || !Array.isArray(data.diagnostics)) return;
+        const diagnostics = data.diagnostics as Array<{ totalQuestions: number; totalCategories: number }>;
+        if (!diagnostics.every((item) => Number.isInteger(item.totalQuestions) && Number.isInteger(item.totalCategories))) return;
+        setDiagnosticStats(diagnostics.reduce((totals, item) => ({
+          questions: totals.questions + item.totalQuestions,
+          categories: totals.categories + item.totalCategories,
+        }), { questions: 0, categories: 0 }));
+      } catch {
+        // Leave counts unavailable rather than displaying outdated figures.
+      }
+    };
+    void loadStats();
+    return () => controller.abort();
+  }, []);
+
   const values = [
     {
       icon: Heart,
@@ -27,7 +52,7 @@ export default function AboutPage() {
     {
       icon: Users,
       title: "Solidarité",
-      description: "Un réseau de 81 bénévoles engagés pour les droits des femmes"
+      description: "Un réseau de plus de 300 bénévoles engagés pour les droits des femmes"
     },
     {
       icon: Target,
@@ -58,8 +83,8 @@ export default function AboutPage() {
       description: "Six membres élues pour un mandat de trois ans"
     },
     {
-      date: "2024",
-      title: "Lancement ALERTE VIOLENCE",
+      date: "2026",
+      title: "Lancement Sister for Sister",
       description: "Première plateforme numérique d'autodiagnostic au Niger"
     }
   ];
@@ -178,7 +203,7 @@ export default function AboutPage() {
                   <div className="grid grid-cols-2 gap-6">
                     {[
                       { number: "2022", label: "Année de création" },
-                      { number: "81", label: "Bénévoles actifs" },
+                      { number: "300+", label: "Bénévoles actifs" },
                       { number: "6", label: "Membres du bureau" },
                       { number: "3 ans", label: "Mandat électoral" }
                     ].map((stat, index) => (
@@ -301,7 +326,7 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ALERTE VIOLENCE Project Section */}
+      {/* Sister for Sister Project Section */}
       <section className="bg-gradient-to-br from-[#f15b24]/5 via-white to-slate-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <motion.div
@@ -317,20 +342,19 @@ export default function AboutPage() {
                   Projet phare
                 </div>
                 <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
-                  ALERTE <span className="gradient-text">VIOLENCE</span>
+                  Sister <span className="gradient-text">for Sister</span>
                 </h2>
                 <p className="text-slate-600 leading-relaxed mb-6">
                   Notre plateforme numérique d&apos;autodiagnostic est une innovation majeure :
-                  aucun outil similaire n&apos;existe au Niger. ALERTE VIOLENCE comble
-                  un vide crucial et répond à un besoin massif de plus de 200 millions de personnes
-                  au Niger.
+                  aucun outil similaire n&apos;existe au Niger. Sister for Sister comble
+                  un vide crucial et répond aux besoins d’accompagnement au Niger.
                 </p>
                 <ul className="space-y-3 mb-8">
                   {[
                     "Première plateforme d'autodiagnostic au Niger",
                     "Accompagnement au Niger",
-                    "Objectif : 100 000+ utilisateurs en 3 ans",
-                    "Orientation vers 10 000+ structures d'aide"
+                    "Objectif : 2 000 utilisateurs en 1 an",
+                    "+1 000 personnes ont désormais le premier déclic pour aller vers la justice"
                   ].map((item, index) => (
                     <motion.li
                       key={index}
@@ -357,14 +381,13 @@ export default function AboutPage() {
               <div className="bg-gradient-to-br from-[#f15b24]/10 to-slate-100 p-8 md:p-12 flex items-center">
                 <div className="grid grid-cols-2 gap-6 w-full">
                   {[
-                    { number: "38", label: "Questions" },
-                    { number: "6", label: "Catégories" },
-                    { number: "8", label: "Pays couverts" },
+                    { number: diagnosticStats?.questions ?? "—", label: "Questions" },
+                    { number: diagnosticStats?.categories ?? "—", label: "Catégories" },
                     { number: "100%", label: "Gratuit" }
                   ].map((stat, index) => (
                     <motion.div
                       key={index}
-                      className="bg-white/80 backdrop-blur rounded-2xl p-6 text-center shadow-sm"
+                      className={`bg-white/80 backdrop-blur rounded-2xl p-6 text-center shadow-sm ${stat.label === 'Gratuit' ? 'col-span-2' : ''}`}
                       initial={{ opacity: 0, scale: 0.9 }}
                       whileInView={{ opacity: 1, scale: 1 }}
                       viewport={{ once: true }}

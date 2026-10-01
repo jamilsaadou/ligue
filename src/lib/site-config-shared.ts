@@ -1,3 +1,7 @@
+// Keep previously saved branding consistent with the current site name.
+export const normalizeSiteBranding = (value: string): string =>
+  value.replace(/alerte\s+violence/gi, 'Sister for Sister');
+
 export type PublicSiteConfig = {
   publicAuthEnabled: boolean;
   siteName: string;
@@ -21,7 +25,7 @@ export type PublicSiteConfig = {
 
 export const DEFAULT_SITE_CONFIG: PublicSiteConfig = {
   publicAuthEnabled: false,
-  siteName: 'ALERTE VIOLENCE',
+  siteName: 'Sister for Sister',
   siteTagline: 'Diagnostiquer pour mieux protéger',
   organizationName: 'Ligue Nigérienne des Droits des Femmes (LNDF)',
   siteDescription:

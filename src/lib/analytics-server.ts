@@ -94,3 +94,19 @@ export const normalizeClientContext = (request: Request, context: ClientContext)
     ...location
   };
 };
+
+// Diagnostic answers must not be connected to an account or a browsing session.
+export const anonymousDiagnosticContext = (request: Request, context: ClientContext) => ({
+  ...normalizeClientContext(request, context),
+  sessionId: null,
+  referrer: null,
+  deviceName: null,
+  userAgent: null,
+  city: null,
+  language: null,
+  screen: null,
+  timezone: null,
+  utmSource: null,
+  utmMedium: null,
+  utmCampaign: null,
+});

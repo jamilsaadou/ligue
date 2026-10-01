@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { requireAdminModule } from '@/lib/rbac';
+import { normalizeSiteBranding } from '@/lib/site-config-shared';
 import { encryptSecret } from '@/lib/secrets';
 
 type SettingsPayload = Record<string, unknown> & {
@@ -61,7 +62,10 @@ export async function POST(request: Request) {
 
     Object.entries(STRING_LIMITS).forEach(([key, limit]) => {
       if (typeof payload[key] === 'string') {
-        sanitized[key] = payload[key].trim().slice(0, limit);
+        const value = payload[key].trim();
+        sanitized[key] = (['siteName', 'siteTagline', 'organizationName', 'siteDescription', 'smtpFromName'].includes(key)
+          ? normalizeSiteBranding(value)
+          : value).slice(0, limit);
       }
     });
     for (const key of ['facebookUrl', 'instagramUrl', 'twitterUrl', 'youtubeUrl']) {

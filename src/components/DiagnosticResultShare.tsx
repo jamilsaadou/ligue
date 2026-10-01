@@ -26,13 +26,13 @@ type Props = {
 };
 
 const LEVEL_COLORS = {
-  safe: '#64748b',
+  safe: '#16a34a',
   warning: '#f15b24',
   danger: '#ef4444'
 };
 
 const LEVEL_BACKGROUNDS = {
-  safe: '#f1f5f9',
+  safe: '#f0fdf4',
   warning: '#fff7ed',
   danger: '#fef2f2'
 };
@@ -243,13 +243,13 @@ export default function DiagnosticResultShare(props: Props) {
     setMessage(null);
     try {
       const blob = await generateImage();
-      const file = new File([blob], 'resultat-alerte-violence.png', { type: 'image/png' });
+      const file = new File([blob], 'resultat-sister-for-sister.png', { type: 'image/png' });
       const canShareFile =
         'share' in navigator && Boolean(navigator.canShare?.({ files: [file] }));
       if (canShareFile) {
         await navigator.share({
-          title: 'Mon résultat ALERTE VIOLENCE',
-          text: 'Voici mon résultat confidentiel au diagnostic ALERTE VIOLENCE.',
+          title: 'Mon résultat Sister for Sister',
+          text: 'Voici mon résultat confidentiel au diagnostic Sister for Sister.',
           files: [file]
         });
         setMessage('Image partagée.');

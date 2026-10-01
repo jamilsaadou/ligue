@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Mentions légales | Alerte Violence',
-  description: "Informations légales relatives au site Alerte Violence."
+  title: 'Mentions légales | Sister for Sister',
+  description: "Informations légales relatives au site Sister for Sister."
 };
 
 export default function MentionsLegalesPage() {

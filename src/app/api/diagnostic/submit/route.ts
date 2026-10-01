@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import {
-  getRequestSession,
-  normalizeClientContext,
+  anonymousDiagnosticContext,
   type ClientContext
 } from '@/lib/analytics-server';
 import { sendDiagnosticNotification } from '@/lib/mailer';
@@ -47,8 +46,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const session = getRequestSession(request);
-    const context = normalizeClientContext(request, payload);
+    const context = anonymousDiagnosticContext(request, payload);
     const attemptId = validId(payload.attemptId) ? payload.attemptId! : null;
     const totalScore = Math.max(0, Math.round(Number(payload.totalScore) || 0));
     const maxScore = Math.max(0, Math.round(Number(payload.maxScore) || 0));
@@ -77,13 +75,13 @@ export async function POST(request: Request) {
             level: payload.level!,
             durationMs,
             completedAt: new Date(),
-            userId: session?.id || undefined,
-            sessionId: context.sessionId || undefined
+            userId: null,
+            sessionId: null
           },
           create: {
             id: attemptId,
             diagnosticId: payload.diagnosticId!,
-            userId: session?.id || null,
+            userId: null,
             sessionId: context.sessionId,
             mode: payload.mode || 'self',
             status: 'completed',
@@ -108,7 +106,7 @@ export async function POST(request: Request) {
         data: {
           diagnosticId: payload.diagnosticId!,
           attemptId,
-          userId: session?.id || null,
+          userId: null,
           sessionId: context.sessionId,
           mode: payload.mode || 'self',
           totalScore,
@@ -128,7 +126,7 @@ export async function POST(request: Request) {
           diagnosticId: payload.diagnosticId,
           attemptId,
           sessionId: context.sessionId,
-          userId: session?.id || null,
+          userId: null,
           durationMs,
           referrer: context.referrer,
           country: context.country,
@@ -167,7 +165,7 @@ export async function POST(request: Request) {
           maxScore,
           mode: payload.mode || 'self',
           durationMs,
-          anonymous: !session?.id,
+          anonymous: true,
           country: context.country,
           completedAt: result.submission.createdAt
         });

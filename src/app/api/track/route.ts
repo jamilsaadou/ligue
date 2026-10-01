@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import {
   getClientIp,
+  anonymousDiagnosticContext,
   getRequestSession,
   normalizeClientContext,
   type ClientContext
@@ -46,8 +47,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false }, { status: 400 });
     }
 
-    const session = getRequestSession(request);
-    const context = normalizeClientContext(request, payload);
+    const isDiagnostic = payload.path.split('?')[0] === '/diagnostic' ||
+      payload.eventCategory === 'diagnostic' || Boolean(payload.attemptId) ||
+      Boolean(payload.diagnosticId) || payload.eventName?.startsWith('diagnostic_');
+    const session = isDiagnostic ? null : getRequestSession(request);
+    const context = isDiagnostic
+      ? anonymousDiagnosticContext(request, payload)
+      : normalizeClientContext(request, payload);
     const eventName = clip(payload.eventName) || 'page_view';
     const durationMs = Number.isFinite(payload.durationMs)
       ? Math.max(0, Math.min(24 * 60 * 60 * 1000, Math.round(payload.durationMs!)))
@@ -75,7 +81,7 @@ export async function POST(request: Request) {
         diagnosticId: clip(payload.diagnosticId),
         attemptId: clip(payload.attemptId),
         metadata: normalizeMetadata(payload.metadata),
-        ip: getClientIp(request),
+        ip: isDiagnostic ? null : getClientIp(request),
         country: context.country,
         city: context.city,
         userId: session?.id || null

@@ -1,7 +1,8 @@
 'use client';
 
 import { useSiteConfig } from '@/hooks/useSiteConfig';
-import { NIGER_EMERGENCY_CONTACTS, phoneLink, whatsappLink } from '@/lib/contacts';
+import { NIGER_EMERGENCY_CONTACTS, whatsappLink } from '@/lib/contacts';
+import LigueContacts from '@/components/LigueContacts';
 
 export default function SupportContacts() {
   const config = useSiteConfig();
@@ -10,13 +11,10 @@ export default function SupportContacts() {
     <div className="space-y-8">
       <section id="clinique-juridique" className="scroll-mt-28">
         <h2 className="text-xl font-bold text-slate-900">Clinique juridique de la Ligue</h2>
-        <p className="mt-2 text-sm text-slate-600">Écoute, soutien psychologique et accompagnement juridique.</p>
+        <p className="mt-2 text-sm text-slate-600">Quelle que soit votre situation, la Ligue Nigérienne des Droits des Femmes est là pour vous.<br />N’hésitez pas à nous contacter.</p>
+        <div className="mt-4"><LigueContacts /></div>
         <div className="mt-4 flex flex-wrap gap-3">
-          {whatsapp ? <a className="glass-button inline-flex" href={whatsapp} target="_blank" rel="noopener noreferrer">Écrire sur WhatsApp</a> : <p className="text-sm text-slate-600">Le contact WhatsApp de la clinique sera disponible prochainement.</p>}
-          {[
-            { name: 'Psychologues', phone: config.clinicPsychologistPhone },
-            { name: 'Gestionnaires de cas', phone: config.clinicCaseManagerPhone },
-          ].map(({ name, phone }) => phoneLink(phone) && <a key={name} className="glass-button-outline" href={phoneLink(phone)!}>{name} : {phone}</a>)}
+          {whatsapp && <a className="glass-button inline-flex" href={whatsapp} target="_blank" rel="noopener noreferrer">Écrire sur WhatsApp</a>}
         </div>
       </section>
       <section id="urgences-niger" className="scroll-mt-28">

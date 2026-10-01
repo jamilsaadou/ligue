@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import { prisma } from '@/lib/prisma';
 import { decryptSecret } from '@/lib/secrets';
+import { normalizeSiteBranding } from '@/lib/site-config-shared';
 
 type SmtpSettings = {
   enabled: boolean;
@@ -58,7 +59,7 @@ const getSmtpSettings = async (): Promise<SmtpSettings> => {
     rejectUnauthorized: asBoolean(values.get('smtpRejectUnauthorized'), true),
     username: asString(values.get('smtpUsername')),
     password: encryptedPassword ? decryptSecret(encryptedPassword) || '' : '',
-    fromName: asString(values.get('smtpFromName')) || 'ALERTE VIOLENCE',
+    fromName: normalizeSiteBranding(asString(values.get('smtpFromName'))) || 'Sister for Sister',
     fromEmail: asString(values.get('smtpFromEmail')),
     notificationEmail: asString(values.get('diagnosticNotificationEmail'))
   };
@@ -133,7 +134,7 @@ export const sendDiagnosticNotification = async (notification: DiagnosticNotific
       <div style="background:#f8fafc;padding:32px;font-family:Arial,sans-serif;color:#0f172a">
         <div style="max-width:620px;margin:auto;background:#fff;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden">
           <div style="background:#eb5f2a;color:#fff;padding:24px 28px">
-            <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;opacity:.85">ALERTE VIOLENCE</div>
+            <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;opacity:.85">Sister for Sister</div>
             <h1 style="font-size:24px;margin:8px 0 0">Nouveau diagnostic terminé</h1>
           </div>
           <div style="padding:28px">
@@ -163,9 +164,9 @@ export const sendSmtpTestEmail = async () => {
   await transporter.sendMail({
     from: { name: settings.fromName, address: settings.fromEmail },
     to: settings.notificationEmail,
-    subject: 'Test SMTP - ALERTE VIOLENCE',
+    subject: 'Test SMTP - Sister for Sister',
     text: 'La configuration SMTP fonctionne. Les notifications de nouveaux diagnostics peuvent être envoyées.',
-    html: '<div style="font-family:Arial,sans-serif;padding:24px"><h2 style="color:#eb5f2a">Configuration SMTP validée</h2><p>Les notifications de nouveaux diagnostics peuvent être envoyées depuis ALERTE VIOLENCE.</p></div>'
+    html: '<div style="font-family:Arial,sans-serif;padding:24px"><h2 style="color:#eb5f2a">Configuration SMTP validée</h2><p>Les notifications de nouveaux diagnostics peuvent être envoyées depuis Sister for Sister.</p></div>'
   });
   return settings.notificationEmail;
 };

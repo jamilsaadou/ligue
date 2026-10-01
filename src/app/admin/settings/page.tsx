@@ -1,11 +1,14 @@
 import { prisma } from '@/lib/prisma';
 import SettingsForm from '@/components/admin/SettingsForm';
-import { DEFAULT_SITE_CONFIG } from '@/lib/site-config-shared';
+import { DEFAULT_SITE_CONFIG, normalizeSiteBranding } from '@/lib/site-config-shared';
 
 export default async function AdminSettingsPage() {
   const settings = await prisma.setting.findMany();
   const settingsMap = settings.reduce<Record<string, unknown>>((acc, setting) => {
-    acc[setting.key] = setting.value;
+    acc[setting.key] = typeof setting.value === 'string' &&
+      ['siteName', 'siteTagline', 'organizationName', 'siteDescription', 'smtpFromName'].includes(setting.key)
+      ? normalizeSiteBranding(setting.value)
+      : setting.value;
     return acc;
   }, {});
 

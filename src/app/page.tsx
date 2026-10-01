@@ -409,7 +409,7 @@ export default function Home() {
                 <p className="text-slate-600 leading-relaxed mb-8">
                   Trop souvent, les violences restent invisibles, banalisées ou tues par peur et par
                   tabou. Beaucoup de personnes n&apos;ont ni un espace sûr pour en parler, ni les
-                  repères pour identifier ce qu&apos;elles vivent. ALERTE VIOLENCE offre un premier pas,
+                  repères pour identifier ce qu&apos;elles vivent. Sister for Sister offre un premier pas,
                   anonyme et gratuit : reconnaître les signaux, mettre des mots sur une situation et
                   s&apos;orienter vers les bonnes ressources — avant qu&apos;il ne soit trop tard.
                 </p>

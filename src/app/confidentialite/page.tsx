@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Politique de confidentialité | Alerte Violence',
+  title: 'Politique de confidentialité | Sister for Sister',
   description:
-    "Informations sur la protection des données et la confidentialité des utilisateurs d'Alerte Violence."
+    "Informations sur la protection des données et la confidentialité des utilisateurs de Sister for Sister."
 };
 
 export default function ConfidentialitePage() {

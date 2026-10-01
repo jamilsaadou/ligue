@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import barometres from "@/data/barometres.json";
+import BarometerGallery from "@/components/BarometerGallery";
 import SupportContacts from "@/components/SupportContacts";
 import {
   ArrowDown,
-  ArrowRight,
   Building2,
   Check,
   ExternalLink,
@@ -424,59 +422,8 @@ export default function ResourcesPage() {
           </>
         )}
       </section>
-      <section id="barometres" className="page-container scroll-mt-28 py-12" aria-labelledby="barometres-title">
-        <h2 id="barometres-title" className="text-3xl font-bold text-slate-900">Tous les baromètres</h2>
-        <p className="mt-3 text-slate-600">Des repères à consulter librement, sans compte et à votre rythme.</p>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {barometres.map((tool) => <Link key={tool.slug} href={`/ressources/${tool.slug}`} className="rounded-2xl border border-orange-200 bg-white p-6 hover:bg-orange-50">
-            <p className="text-sm font-semibold text-orange-800">{tool.statements.length} situations</p>
-            <h3 className="mt-2 text-xl font-bold text-slate-900">{tool.title}</h3>
-            <span className="mt-4 inline-flex text-sm font-semibold text-orange-800">Consulter l’outil complet →</span>
-          </Link>)}
-        </div>
-      </section>
+      <BarometerGallery />
       <section className="page-container pb-12"><SupportContacts /></section>
-      <section
-        className="mx-auto mt-12 max-w-7xl px-4 sm:px-6 lg:px-8"
-        aria-labelledby="next-step-title"
-      >
-        <div className="grid overflow-hidden rounded-[2rem] bg-slate-900 text-white lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="p-6 sm:p-9">
-            <p className="text-xs font-semibold uppercase tracking-widest text-orange-300">
-              Pour préparer votre échange
-            </p>
-            <h2 id="next-step-title" className="mt-3 text-2xl font-bold">
-              Un premier contact,
-              <br />à votre rythme.
-            </h2>
-            <p className="mt-4 max-w-lg text-sm leading-relaxed text-slate-300">
-              Vous pouvez commencer par demander quels services sont proposés, à
-              quels horaires et selon quelles modalités de confidentialité.
-            </p>
-          </div>
-          <div className="border-t border-white/10 bg-white/5 p-6 sm:p-9 lg:border-l lg:border-t-0">
-            <HeartHandshake
-              size={26}
-              className="text-orange-300"
-              aria-hidden="true"
-            />
-            <h3 className="mt-3 text-lg font-semibold">
-              Faire le point sur votre relation
-            </h3>
-            <p className="mt-2 text-sm leading-relaxed text-slate-300">
-              Le violentomètre propose des repères pour mieux comprendre votre
-              situation.
-            </p>
-            <Link
-              href="/diagnostic"
-              className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-orange-300 hover:text-orange-200"
-            >
-              Découvrir le diagnostic
-              <ArrowRight size={17} aria-hidden="true" />
-            </Link>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
