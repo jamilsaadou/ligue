@@ -30,7 +30,7 @@ export const DEFAULT_SITE_CONFIG: PublicSiteConfig = {
   organizationName: 'Ligue Nigérienne des Droits des Femmes (LNDF)',
   siteDescription:
     "Première plateforme numérique d'autodiagnostic des violences au Niger.",
-  supportEmail: 'lndf.niger@gmail.com',
+  supportEmail: 'liguenigerienne@gmail.com',
   supportPhone: '',
   clinicWhatsapp: '',
   clinicPsychologistPhone: '',

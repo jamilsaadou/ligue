@@ -523,7 +523,7 @@ export const resources = [
   {
     country: "Niger",
     resources: [
-      { name: "Ligue Nigérienne des Droits des Femmes (LNDF)", type: "Association", contact: "lndf.niger@gmail.com" },
+      { name: "Ligue Nigérienne des Droits des Femmes (LNDF)", type: "Association", contact: "liguenigerienne@gmail.com" },
       { name: "Ministère de la Promotion de la Femme", type: "Institution", contact: "+227 20 72 29 83" },
       { name: "Police Secours", type: "Urgence", contact: "17" }
     ]

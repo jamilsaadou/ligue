@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import Image from 'next/image';
 import LigueLinks from '@/components/LigueLinks';
 import {
   Heart,
@@ -100,12 +99,16 @@ export default function AboutPage() {
 
   const partners = [
     { src: '/partenaires/Ligue.png', alt: 'Ligue Nigérienne des Droits des Femmes' },
-    { src: '/partenaires/Unicef.png', alt: 'UNICEF' },
-    { src: '/partenaires/onu femme.png', alt: 'ONU Femmes' },
     { src: '/partenaires/equipop.png', alt: 'Equipop' },
     { src: '/partenaires/feministe.png', alt: 'Fonds Féministe' },
     { src: '/partenaires/win.png', alt: 'WIN' },
     { src: '/partenaires/armoirie.png', alt: 'République du Niger' },
+    { src: '/partenaires/oxfam.jpg', alt: 'Oxfam International', width: 1600, height: 1200, viewBox: '80 380 1440 450' },
+    { src: '/partenaires/odas.jpg', alt: 'ODAS', width: 1600, height: 1600, viewBox: '100 530 1400 490' },
+    { src: '/partenaires/fon.jpg', alt: 'Feminist Opportunities Now', width: 435, height: 140, viewBox: '0 0 435 140' },
+    { src: '/partenaires/royaume-uni.jpg', alt: 'Royaume-Uni', width: 200, height: 200, viewBox: '25 30 150 140' },
+    { src: '/partenaires/purposeful.jpg', alt: 'Purposeful', width: 1195, height: 1195, viewBox: '150 150 895 895' },
+    { src: '/partenaires/ippf.jpg', alt: 'IPPF', width: 780, height: 470, viewBox: '0 145 780 200' },
   ];
 
   return (
@@ -436,20 +439,20 @@ export default function AboutPage() {
             {partners.map((partner, index) => (
               <motion.div
                 key={index}
-                className="bg-slate-50 hover:bg-white rounded-2xl p-6 flex items-center justify-center border border-slate-100 hover:border-[#f15b24]/20 hover:shadow-lg transition-all duration-300 aspect-[4/3]"
+                className="flex flex-col items-center rounded-2xl border border-slate-200 bg-white px-5 py-6 shadow-sm transition-shadow duration-300 hover:shadow-md"
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.05 }}
                 whileHover={{ y: -5 }}
               >
-                <Image
-                  src={partner.src}
-                  alt={partner.alt}
-                  width={140}
-                  height={100}
-                  className="object-contain h-16 md:h-20 w-auto opacity-80 hover:opacity-100 transition-opacity"
-                />
+                <div className="flex h-28 w-full items-center justify-center">
+                  <svg role="img" aria-label={partner.alt} viewBox={partner.viewBox || '0 0 500 300'} className="h-full w-full" preserveAspectRatio="xMidYMid meet">
+                    <title>{partner.alt}</title>
+                    <image href={partner.src} width={partner.width || 500} height={partner.height || 300} />
+                  </svg>
+                </div>
+                <p className="mt-5 flex min-h-10 items-center justify-center text-center text-sm font-medium leading-snug text-slate-600">{partner.alt}</p>
               </motion.div>
             ))}
           </motion.div>
@@ -478,11 +481,11 @@ export default function AboutPage() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
-                href="mailto:lndf.niger@gmail.com"
+                href="mailto:liguenigerienne@gmail.com"
                 className="inline-flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-[#f15b24] text-white font-medium hover:bg-[#d54d1a] transition-colors shadow-lg shadow-[#f15b24]/25"
               >
                 <Mail className="w-5 h-5" />
-                lndf.niger@gmail.com
+                liguenigerienne@gmail.com
               </a>
 
               <div className="inline-flex items-center justify-center gap-3 px-6 py-4 rounded-2xl bg-slate-100 text-slate-700">

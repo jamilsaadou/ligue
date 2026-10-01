@@ -75,7 +75,7 @@ export default function ConfidentialitePage() {
               <h2 className="text-xl font-semibold text-slate-900 mb-3">Contact</h2>
               <p>
                 Pour toute question sur la confidentialité, contactez-nous à{' '}
-                <span className="font-medium">lndf.niger@gmail.com</span>.
+                <span className="font-medium">liguenigerienne@gmail.com</span>.
               </p>
             </section>
           </div>

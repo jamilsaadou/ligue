@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import BarometerGallery from "@/components/BarometerGallery";
 import SupportContacts from "@/components/SupportContacts";
+import LigueResource from "@/components/LigueResource";
 import {
   ArrowDown,
   Building2,
   Check,
   ExternalLink,
-  Globe2,
   Headphones,
   HeartHandshake,
   LifeBuoy,
@@ -108,10 +108,6 @@ export default function ResourcesPage() {
         `${resource.name} ${resource.description || ""} ${resource.address || ""} ${resource.contact}`,
       ).includes(normalize(search)),
   );
-  const totalResources = countries.reduce(
-    (sum, country) => sum + country.resources.length,
-    0,
-  );
   return (
     <div className="min-h-screen bg-[#faf9f6] pb-16">
       <section className="relative overflow-hidden border-b border-orange-100 bg-[#fff7ee]">
@@ -203,72 +199,12 @@ export default function ResourcesPage() {
           </aside>
         </div>
       </section>
+      <LigueResource />
       <section
         id="trouver-une-ressource"
         className="mx-auto max-w-7xl scroll-mt-28 px-4 pt-10 sm:px-6 lg:px-8"
-        aria-labelledby="directory-title"
+        aria-label="Annuaire d’accompagnement"
       >
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-orange-700">
-              L’annuaire d’accompagnement
-            </p>
-            <h2
-              id="directory-title"
-              className="mt-2 text-2xl font-bold text-slate-900 sm:text-3xl"
-            >
-              Le bon contact, près de vous
-            </h2>
-          </div>
-          {!loading && !error && (
-            <p className="flex items-center gap-2 text-sm text-slate-500">
-              <Globe2 size={17} aria-hidden="true" />
-              {totalResources} ressource{totalResources > 1 ? "s" : ""} ·{" "}
-              Niger
-            </p>
-          )}
-        </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-          <div className="grid gap-4 md:grid-cols-1">
-            <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-slate-700">
-                Rechercher un contact
-              </span>
-              <div className="relative">
-                <Search
-                  size={18}
-                  className="pointer-events-none absolute left-4 top-4 text-slate-400"
-                  aria-hidden="true"
-                />
-                <input
-                  type="search"
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Nom, service, ville…"
-                  className="glass-input min-h-12 w-full !pl-11"
-                />
-              </div>
-            </label>
-          </div>
-          <div
-            role="group"
-            aria-label="Type de service"
-            className="mt-5 flex flex-wrap gap-2"
-          >
-            {resourceTypes.map(({ key, label, icon: Icon }) => (
-              <button
-                key={key}
-                onClick={() => setType(key)}
-                aria-pressed={type === key}
-                className={`inline-flex min-h-11 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold transition ${type === key ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-600 hover:border-orange-300 hover:bg-orange-50"}`}
-              >
-                <Icon size={15} aria-hidden="true" />
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {loading ? (
           <div role="status" className="py-12 text-center text-slate-500">
             Chargement des contacts…
