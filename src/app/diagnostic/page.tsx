@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import CategoryIntroduction from '@/components/CategoryIntroduction';
 import LigueContacts from '@/components/LigueContacts';
-import { diagnosticWelcome } from '@/data/category-introductions';
 import DiagnosticResultShare from '@/components/DiagnosticResultShare';
 import {
   getClientAnalyticsContext,
@@ -257,6 +256,7 @@ export default function DiagnosticPage() {
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
+  // Retain category filters only when resuming a diagnostic saved before category selection was removed.
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[] | null>(null);
   const [showCategoryIntro, setShowCategoryIntro] = useState(false);
   const answerTransitionRef = useRef(false);
@@ -341,7 +341,7 @@ export default function DiagnosticPage() {
       return;
     }
 
-    const savedCategories = targetDiagnostic.categories.filter((category) => !parsed.selectedCategoryIds || parsed.selectedCategoryIds.includes(category.id));
+    const savedCategories = targetDiagnostic.categories.filter((category) => category.questions.length > 0 && (!parsed.selectedCategoryIds || parsed.selectedCategoryIds.includes(category.id)));
     const parsedCategory = savedCategories[parsed.currentCategoryIndex];
     const isValidProgress =
       parsed.currentCategoryIndex >= 0 &&
@@ -422,7 +422,7 @@ export default function DiagnosticPage() {
       const resumedStartedAt = savedProgress.startedAt || new Date().toISOString();
       const resumedAnswersCount = Object.keys(savedProgress.answers).length;
       const resumedTotalQuestions = resumedDiagnostic
-        ? resumedDiagnostic.categories.filter((category) => !savedProgress.selectedCategoryIds || savedProgress.selectedCategoryIds.includes(category.id)).reduce(
+        ? resumedDiagnostic.categories.filter((category) => category.questions.length > 0 && (!savedProgress.selectedCategoryIds || savedProgress.selectedCategoryIds.includes(category.id))).reduce(
             (total, category) => total + category.questions.length,
             0
           )
@@ -488,7 +488,7 @@ export default function DiagnosticPage() {
     });
   };
 
-  const categories = useMemo(() => (diagnostic?.categories ?? []).filter((category) => !selectedCategoryIds || selectedCategoryIds.includes(category.id)), [diagnostic, selectedCategoryIds]);
+  const categories = useMemo(() => (diagnostic?.categories ?? []).filter((category) => category.questions.length > 0 && (!selectedCategoryIds || selectedCategoryIds.includes(category.id))), [diagnostic, selectedCategoryIds]);
   const currentCategory = categories[currentCategoryIndex];
   const currentQuestion = currentCategory?.questions[currentQuestionIndex];
   const CurrentCategoryIcon = resolveCategoryIcon(currentCategory);
@@ -516,6 +516,18 @@ export default function DiagnosticPage() {
       };
     });
   }, [answers, categories]);
+
+  const handleSelectMode = (nextMode: Exclude<Mode, null>) => {
+    setMode(nextMode);
+    setSelectedCategoryIds(null);
+    setCurrentCategoryIndex(0);
+    setCurrentQuestionIndex(0);
+    setAnswers({});
+    setIsStarted(false);
+    setShowResults(false);
+    setShowCategoryIntro(true);
+    hasSubmittedRef.current = false;
+  };
 
   const handleBeginDiagnostic = () => {
     if (!diagnostic || !mode) return;
@@ -738,7 +750,7 @@ export default function DiagnosticPage() {
       : diagnosticList.find(d => d.id === savedProgress.diagnosticId) ||
         savedProgress.diagnosticSnapshot;
     const savedTotalQuestions = savedDiag
-      ? savedDiag.categories.filter((category) => !savedProgress.selectedCategoryIds || savedProgress.selectedCategoryIds.includes(category.id)).reduce((acc, cat) => acc + cat.questions.length, 0)
+      ? savedDiag.categories.filter((category) => category.questions.length > 0 && (!savedProgress.selectedCategoryIds || savedProgress.selectedCategoryIds.includes(category.id))).reduce((acc, cat) => acc + cat.questions.length, 0)
       : Object.keys(savedProgress.answers).length;
 
     return (
@@ -957,7 +969,7 @@ export default function DiagnosticPage() {
           <div className="grid md:grid-cols-2 gap-8">
             <motion.button
               className="glass-card p-8 text-left hover:border-[#f15b24]/50 transition-all group"
-              onClick={() => setMode('self')}
+              onClick={() => handleSelectMode('self')}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -974,7 +986,7 @@ export default function DiagnosticPage() {
 
             <motion.button
               className="glass-card p-8 text-left hover:border-[#f15b24]/50 transition-all group"
-              onClick={() => setMode('other')}
+              onClick={() => handleSelectMode('other')}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -1010,7 +1022,7 @@ export default function DiagnosticPage() {
     );
   }
 
-  // Category introduction appears before the first question of each selected category.
+  // Category introduction appears before the first question of each category.
   if (showCategoryIntro && currentCategory && !showResults) {
     return <CategoryIntroduction
       name={currentCategory.name}
@@ -1026,38 +1038,10 @@ export default function DiagnosticPage() {
           setCurrentQuestionIndex(categories[currentCategoryIndex - 1].questions.length - 1);
         } else {
           setIsStarted(false);
+          setMode(null);
         }
       }}
     />;
-  }
-
-  if (!isStarted && diagnostic) {
-    return (
-      <div className="min-h-[calc(100vh-80px)] px-4 py-8 flex justify-center">
-        <section className="w-full max-w-3xl" aria-labelledby="category-selection-title">
-          <h1 id="category-selection-title" className="text-2xl md:text-3xl font-bold text-slate-900">Qu’est-ce qui vous préoccupe en ce moment ?</h1>
-          <p className="mt-4 text-slate-600">{diagnosticWelcome.split('? ')[1]}</p>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            {diagnostic.categories.filter((category) => category.questions.length > 0).map((category) => (
-              <label key={category.id} className="glass-card p-5 flex items-start gap-3 cursor-pointer">
-                <input type="checkbox" className="mt-1 h-5 w-5 accent-[#f15b24]" checked={selectedCategoryIds?.includes(category.id) ?? false}
-                  onChange={(event) => setSelectedCategoryIds((ids) => event.target.checked ? [...(ids || []), category.id] : (ids || []).filter((id) => id !== category.id))} />
-                <span><span className="font-semibold text-slate-900">{category.name}</span><span className="mt-2 block text-sm text-slate-600">{category.description}</span></span>
-              </label>
-            ))}
-          </div>
-          <div className="mt-8 flex flex-col sm:flex-row gap-4">
-            <button className="glass-button disabled:opacity-50 disabled:cursor-not-allowed" disabled={!selectedCategoryIds?.length} onClick={() => {
-              setCurrentCategoryIndex(0);
-              setCurrentQuestionIndex(0);
-              setAnswers({});
-              setShowCategoryIntro(true);
-            }}>Continuer</button>
-            <button className="glass-button-outline" onClick={() => setMode(null)}>Retour</button>
-          </div>
-        </section>
-      </div>
-    );
   }
 
   // Error check - only when in questionnaire mode

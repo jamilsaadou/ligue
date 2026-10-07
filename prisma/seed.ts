@@ -399,7 +399,7 @@ const resources = [
   {
     country: { name: "Niger", code: "NE", emergencyNumber: "17" },
     resources: [
-      { name: "Ligue Nigérienne des Droits des Femmes (LNDF)", type: "association" as ResourceType, contact: "liguenigerienne@gmail.com" },
+      { name: "Ligue Nigérienne des Droits des Femmes", type: "association" as ResourceType, contact: "liguenigerienne@gmail.com" },
       { name: "Ministère de la Promotion de la Femme", type: "institution" as ResourceType, contact: "+227 20 72 29 83" },
       { name: "Police Secours", type: "urgence" as ResourceType, contact: "17" }
     ]

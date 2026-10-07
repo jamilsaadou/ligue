@@ -19,9 +19,9 @@ export const metadata: Metadata = {
     icon: { url: "/brand/favicon-ligue.png?v=2", type: "image/png", sizes: "512x512" },
     apple: { url: "/brand/favicon-ligue.png?v=2", sizes: "512x512" },
   },
-  title: "Sister for Sister - Violentomètre Numérique | LNDF Niger",
+  title: "Sister for Sister - Violentomètre Numérique | Ligue Nigérienne des Droits des Femmes",
   description: "Première plateforme numérique d'autodiagnostic des violences au Niger. Évaluez votre situation de manière anonyme et confidentielle.",
-  keywords: ["violences", "femmes", "diagnostic", "aide", "Niger", "Afrique", "LNDF", "violentomètre"],
+  keywords: ["violences", "femmes", "diagnostic", "aide", "Niger", "Afrique", "Ligue Nigérienne des Droits des Femmes", "violentomètre"],
   authors: [{ name: "Ligue Nigérienne des Droits des Femmes" }],
   openGraph: {
     title: "Sister for Sister - Violentomètre Numérique",

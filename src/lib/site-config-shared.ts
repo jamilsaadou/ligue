@@ -1,6 +1,9 @@
 // Keep previously saved branding consistent with the current site name.
 export const normalizeSiteBranding = (value: string): string =>
-  value.replace(/alerte\s+violence/gi, 'Sister for Sister');
+  value
+    .replace(/alerte\s+violence/gi, 'Sister for Sister')
+    .replace(/Ligue Nigérienne des Droits des Femmes\s*\(LNDF\)/gi, 'Ligue Nigérienne des Droits des Femmes')
+    .replace(/\bLNDF\b/gi, 'Ligue Nigérienne des Droits des Femmes');
 
 export type PublicSiteConfig = {
   publicAuthEnabled: boolean;
@@ -27,7 +30,7 @@ export const DEFAULT_SITE_CONFIG: PublicSiteConfig = {
   publicAuthEnabled: false,
   siteName: 'Sister for Sister',
   siteTagline: 'Diagnostiquer pour mieux protéger',
-  organizationName: 'Ligue Nigérienne des Droits des Femmes (LNDF)',
+  organizationName: 'Ligue Nigérienne des Droits des Femmes',
   siteDescription:
     "Première plateforme numérique d'autodiagnostic des violences au Niger.",
   supportEmail: 'liguenigerienne@gmail.com',

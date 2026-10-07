@@ -14,7 +14,7 @@ export default function Footer() {
   const quickLinks = [
     { href: '/diagnostic', label: 'Commencer le diagnostic' },
     { href: '/ressources', label: 'Ressources d\'aide' },
-    { href: '/a-propos', label: 'À propos de la LNDF' },
+    { href: '/a-propos', label: 'À propos de la Ligue Nigérienne des Droits des Femmes' },
   ];
 
   const legalLinks = [

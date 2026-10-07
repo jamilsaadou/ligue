@@ -25,7 +25,7 @@ export default function MentionsLegalesPage() {
           <div className="space-y-8 text-slate-700 leading-relaxed">
             <section>
               <h2 className="text-xl font-semibold text-slate-900 mb-3">Éditeur</h2>
-              <p>Ligue Nigérienne des Droits des Femmes (LNDF)</p>
+              <p>Ligue Nigérienne des Droits des Femmes</p>
               <p>Contact : liguenigerienne@gmail.com</p>
             </section>
 
@@ -33,7 +33,7 @@ export default function MentionsLegalesPage() {
               <h2 className="text-xl font-semibold text-slate-900 mb-3">
                 Responsable de publication
               </h2>
-              <p>LNDF (à préciser si nécessaire).</p>
+              <p>Ligue Nigérienne des Droits des Femmes (à préciser si nécessaire).</p>
             </section>
 
             <section>

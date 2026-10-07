@@ -1,5 +1,3 @@
-export const diagnosticWelcome = 'Qu’est-ce qui vous préoccupe en ce moment ? Choisissez une ou plusieurs situations ci-dessous. Ce diagnostic est anonyme, confidentiel, et ne vous engage à rien.';
-
 export const diagnosticReassurance = 'Prenez votre temps. Vous pouvez vous arrêter à tout moment, revenir en arrière, ou fermer la page. Vos réponses sont anonymes et ne sont jamais enregistrées avec votre identité.';
 
 export const categoryIntroductions = [

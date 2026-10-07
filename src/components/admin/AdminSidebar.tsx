@@ -55,7 +55,7 @@ export default function AdminSidebar({
             <Shield className="w-5 h-5 text-white" />
           </div>
           <div>
-            <div className="font-semibold text-white">Console LNDF</div>
+            <div className="font-semibold text-white">Console Ligue Nigérienne des Droits des Femmes</div>
             <div className="text-xs text-slate-400">
               {role === 'super_admin' ? 'Super Admin' : 'Admin'}
             </div>

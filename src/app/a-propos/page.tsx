@@ -68,7 +68,7 @@ export default function AboutPage() {
   const milestones = [
     {
       date: "Décembre 2022",
-      title: "Création de la LNDF",
+      title: "Création de la Ligue Nigérienne des Droits des Femmes",
       description: "Fondée par une vingtaine de militantes déterminées"
     },
     {
