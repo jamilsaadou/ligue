@@ -1027,6 +1027,7 @@ export default function DiagnosticPage() {
     return <CategoryIntroduction
       name={currentCategory.name}
       description={currentCategory.description}
+      diagnosticName={!isStarted ? diagnostic?.title : undefined}
       onStart={() => {
         if (!isStarted) handleBeginDiagnostic();
         else setShowCategoryIntro(false);

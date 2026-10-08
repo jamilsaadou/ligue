@@ -98,16 +98,15 @@ export default function AboutPage() {
   ];
 
   const partners = [
+    { src: '/partenaires/armoirie.png', alt: 'République du Niger' },
     { src: '/partenaires/Ligue.png', alt: 'Ligue Nigérienne des Droits des Femmes' },
     { src: '/partenaires/equipop.png', alt: 'Equipop' },
     { src: '/partenaires/feministe.png', alt: 'Fonds Féministe' },
     { src: '/partenaires/win.png', alt: 'WIN' },
-    { src: '/partenaires/armoirie.png', alt: 'République du Niger' },
     { src: '/partenaires/oxfam.jpg', alt: 'Oxfam International', width: 1600, height: 1200, viewBox: '80 380 1440 450' },
     { src: '/partenaires/odas.jpg', alt: 'ODAS', width: 1600, height: 1600, viewBox: '100 530 1400 490' },
     { src: '/partenaires/fon.jpg', alt: 'Feminist Opportunities Now', width: 435, height: 140, viewBox: '0 0 435 140' },
-    { src: '/partenaires/royaume-uni.jpg', alt: 'Royaume-Uni', width: 200, height: 200, viewBox: '25 30 150 140' },
-    { src: '/partenaires/purposeful.jpg', alt: 'Purposeful', width: 1195, height: 1195, viewBox: '150 150 895 895' },
+    { src: '/partenaires/ambassade-britannique-niamey.jpg', alt: 'Ambassade britannique à Niamey', width: 1600, height: 1353, viewBox: '0 0 1600 1353' },
     { src: '/partenaires/ippf.jpg', alt: 'IPPF', width: 780, height: 470, viewBox: '0 145 780 200' },
   ];
 

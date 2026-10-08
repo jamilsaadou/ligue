@@ -32,6 +32,25 @@ test('all eight definitions resolve, including accented names and existing categ
   assert.equal(content.getCategoryDefinition('Autre catégorie', 'Description existante'), 'Description existante');
 });
 
+test('diagnostic titles resolve to the supplied definitions before generic category aliases', () => {
+  for (const [title, definitionTitle] of [
+    ['Cyber-Violentoscope', 'Cyberviolences'],
+    ['Harcélomètre', 'Harcèlement'],
+    ['Haromètre économique', 'Violences économiques'],
+    ['Baromètre des violences économiques', 'Violences économiques'],
+    ['Incestomètre', 'Climat incestuel'],
+    ['Climat incestuel', 'Climat incestuel'],
+    ['Violentomètre - Évaluez votre relation', 'Violences'],
+  ]) {
+    const expected = content.diagnosticDefinitions.find((item) => item.title === definitionTitle).definition;
+    assert.equal(content.getDiagnosticDefinition(title), expected, title);
+    assert.equal(content.getCategoryDefinition(title), expected, title);
+  }
+  assert.equal(content.getDiagnosticDefinition('Diagnostic personnalisé'), undefined);
+  assert.equal(content.getDiagnosticDefinition('Violences psychologiques'), undefined);
+  assert.notEqual(content.getCategoryDefinition('Inceste'), content.getCategoryDefinition('Climat incestuel'));
+});
+
 test('diagnostic context removes identifying and shared browsing fields', () => {
   const context = analytics.anonymousDiagnosticContext(new Request('http://localhost', {
     headers: { 'user-agent': 'Test browser', 'x-vercel-ip-city': 'Test City', 'x-vercel-ip-country': 'NE' }
