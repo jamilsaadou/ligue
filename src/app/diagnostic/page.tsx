@@ -260,6 +260,8 @@ export default function DiagnosticPage() {
   const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[] | null>(null);
   const [showCategoryIntro, setShowCategoryIntro] = useState(false);
   const answerTransitionRef = useRef(false);
+  const answerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const activeQuestionIdRef = useRef<string | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [isStarted, setIsStarted] = useState(false);
   const [showResumeModal, setShowResumeModal] = useState(false);
@@ -268,6 +270,10 @@ export default function DiagnosticPage() {
   const [attemptStartedAt, setAttemptStartedAt] = useState<string | null>(null);
   const hasSubmittedRef = useRef(false);
   const trackedMilestonesRef = useRef<Set<number>>(new Set());
+
+  useEffect(() => () => {
+    if (answerTimerRef.current !== null) clearTimeout(answerTimerRef.current);
+  }, []);
 
   // Load list of available diagnostics
   useEffect(() => {
@@ -493,8 +499,16 @@ export default function DiagnosticPage() {
   const currentQuestion = currentCategory?.questions[currentQuestionIndex];
   const CurrentCategoryIcon = resolveCategoryIcon(currentCategory);
 
+  useEffect(() => {
+    activeQuestionIdRef.current = isStarted && !showCategoryIntro && !showResults
+      ? currentQuestion?.id ?? null
+      : null;
+  }, [currentQuestion?.id, isStarted, showCategoryIntro, showResults]);
+
   const totalQuestions = categories.reduce((acc, cat) => acc + cat.questions.length, 0);
   const answeredQuestions = Object.keys(answers).length;
+  const currentQuestionNumber = categories.slice(0, currentCategoryIndex)
+    .reduce((total, category) => total + category.questions.length, 0) + currentQuestionIndex + 1;
   const progress = totalQuestions ? (answeredQuestions / totalQuestions) * 100 : 0;
 
   // Calculate scores
@@ -673,20 +687,21 @@ export default function DiagnosticPage() {
   }
 
   const handleAnswer = (questionId: string, points: number) => {
-    if (!currentCategory || !diagnostic || answerTransitionRef.current) return;
+    if (!currentCategory || !diagnostic || answerTransitionRef.current || activeQuestionIdRef.current !== questionId) return;
     answerTransitionRef.current = true;
+    activeQuestionIdRef.current = null;
     const nextAnswers = { ...answers, [questionId]: points };
     setAnswers(nextAnswers);
 
     // Auto-advance to next question after a short delay
-    setTimeout(() => {
+    answerTimerRef.current = setTimeout(() => {
+      answerTimerRef.current = null;
       answerTransitionRef.current = false;
       if (currentQuestionIndex < currentCategory.questions.length - 1) {
         setCurrentQuestionIndex(prev => prev + 1);
       } else if (currentCategoryIndex < categories.length - 1) {
         setCurrentCategoryIndex(prev => prev + 1);
         setCurrentQuestionIndex(0);
-        setShowCategoryIntro(true);
       } else {
         const completedAt = new Date().toISOString();
         const completedProgress: SavedProgress = {
@@ -717,12 +732,19 @@ export default function DiagnosticPage() {
     if (answerTransitionRef.current) return;
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(prev => prev - 1);
+    } else if (currentCategoryIndex > 0) {
+      setCurrentCategoryIndex(prev => prev - 1);
+      setCurrentQuestionIndex(categories[currentCategoryIndex - 1].questions.length - 1);
     } else {
       setShowCategoryIntro(true);
     }
   };
 
   const handleRestart = () => {
+    if (answerTimerRef.current !== null) clearTimeout(answerTimerRef.current);
+    answerTimerRef.current = null;
+    answerTransitionRef.current = false;
+    activeQuestionIdRef.current = null;
     clearSavedProgress();
     setSelectedDiagnosticId(null);
     setDiagnostic(null);
@@ -1022,12 +1044,12 @@ export default function DiagnosticPage() {
     );
   }
 
-  // Category introduction appears before the first question of each category.
+  // Explain the chosen diagnostic before starting; category changes continue directly.
   if (showCategoryIntro && currentCategory && !showResults) {
     return <CategoryIntroduction
       name={currentCategory.name}
       description={currentCategory.description}
-      diagnosticName={!isStarted ? diagnostic?.title : undefined}
+      diagnosticName={!isStarted || currentCategoryIndex === 0 ? diagnostic?.title : undefined}
       onStart={() => {
         if (!isStarted) handleBeginDiagnostic();
         else setShowCategoryIntro(false);
@@ -1279,7 +1301,7 @@ export default function DiagnosticPage() {
               {currentCategory.name}
             </div>
             <span className="text-slate-500 text-sm">
-              Question {answeredQuestions + 1} / {totalQuestions}
+              Question {currentQuestionNumber} / {totalQuestions}
             </span>
           </div>
           <div className="progress-bar">
