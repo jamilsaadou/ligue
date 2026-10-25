@@ -131,6 +131,7 @@ model DiagnosticSubmission {
   user        User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
   sessionId   String?
   mode        String
+  sex         String?
   totalScore  Int
   maxScore    Int
   level       String
@@ -153,6 +154,7 @@ model DiagnosticAttempt {
   user           User?                   @relation(fields: [userId], references: [id], onDelete: SetNull)
   sessionId      String?
   mode           String
+  sex            String?
   status         DiagnosticAttemptStatus @default(started)
   answersCount   Int                     @default(0)
   totalQuestions Int

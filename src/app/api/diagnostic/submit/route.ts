@@ -1,3 +1,4 @@
+import { isDiagnosticSex, type DiagnosticSex } from '@/lib/diagnostic-language';
 import { NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
@@ -11,6 +12,7 @@ type SubmissionPayload = ClientContext & {
   diagnosticId?: string;
   attemptId?: string;
   mode?: 'self' | 'other';
+  sex?: DiagnosticSex;
   totalScore?: number;
   maxScore?: number;
   level?: string;
@@ -27,6 +29,7 @@ export async function POST(request: Request) {
     const payload = (await request.json()) as SubmissionPayload;
     if (
       !validId(payload.diagnosticId) ||
+      !isDiagnosticSex(payload.sex) ||
       !['safe', 'warning', 'danger'].includes(payload.level || '')
     ) {
       return NextResponse.json(
@@ -68,6 +71,7 @@ export async function POST(request: Request) {
         await tx.diagnosticAttempt.upsert({
           where: { id: attemptId },
           update: {
+            sex: payload.sex,
             status: 'completed',
             answersCount,
             totalScore,
@@ -83,6 +87,7 @@ export async function POST(request: Request) {
             diagnosticId: payload.diagnosticId!,
             userId: null,
             sessionId: context.sessionId,
+            sex: payload.sex,
             mode: payload.mode || 'self',
             status: 'completed',
             answersCount,
@@ -108,6 +113,7 @@ export async function POST(request: Request) {
           attemptId,
           userId: null,
           sessionId: context.sessionId,
+          sex: payload.sex,
           mode: payload.mode || 'self',
           totalScore,
           maxScore,
@@ -143,6 +149,7 @@ export async function POST(request: Request) {
           utmMedium: context.utmMedium,
           utmCampaign: context.utmCampaign,
           metadata: {
+            sex: payload.sex,
             mode: payload.mode || 'self',
             level: payload.level!,
             totalScore,

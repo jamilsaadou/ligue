@@ -647,6 +647,9 @@ function exportData(data: AnalyticsDashboardData) {
     ["Période UTC", "Démarrages", "Résultats"],
     ...data.timeline.map((item) => [item.key, item.starts, item.completions]),
     [],
+    ["Sexe de la personne évaluée", "Résultats"],
+    ...data.sexes.map((item) => [item.label, item.value]),
+    [],
     ["Niveau", "Résultats"],
     ...data.levels.map((item) => [item.label, item.value]),
     [],
@@ -960,6 +963,9 @@ export default function AnalyticsDashboard({
           subtitle="Répartition des résultats par mode choisi"
         >
           <Ring items={data.modes} total={k.completions} label="résultats" />
+        </Panel>
+        <Panel title="Sexe de la personne évaluée" subtitle="Diagnostics terminés sur la période sélectionnée ; les anciens résultats restent non renseignés">
+          <Ring items={data.sexes} total={k.completions} label="résultats" />
         </Panel>
       </div>
 

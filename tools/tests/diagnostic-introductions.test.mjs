@@ -18,6 +18,7 @@ function load(file, dependencies = {}) {
   return exports;
 }
 
+const language = load('src/lib/diagnostic-language.ts');
 const content = load('src/data/category-introductions.ts');
 const analytics = load('src/lib/analytics-server.ts', {
   '@/lib/auth': { getSessionCookieName: () => 'session', verifySessionToken: () => ({ id: 'signed-in-user' }) }
@@ -77,12 +78,27 @@ for (const route of ['attempt', 'submit', 'track']) {
       'next/server': { NextResponse: { json: (body) => body } },
       '@prisma/client': {},
       '@/lib/prisma': { prisma },
+      '@/lib/diagnostic-language': language,
       '@/lib/analytics-server': analytics,
       '@/lib/mailer': { sendDiagnosticNotification: async (notification) => { assert.equal(notification.anonymous, true); return { sent: false }; } },
     });
-    const payload = { path: '/diagnostic', eventName: 'diagnostic_started', eventCategory: 'diagnostic', diagnosticId: 'diagnostic-id', attemptId: 'attempt-id', mode: 'self', totalQuestions: 2, answersCount: 1, answers: { q1: 0 }, level: 'safe', sessionId: 'shared-session', milestone: 50 };
+    const payload = { path: '/diagnostic', eventName: 'diagnostic_started', eventCategory: 'diagnostic', diagnosticId: 'diagnostic-id', attemptId: 'attempt-id', mode: 'self', sex: 'female', totalQuestions: 2, answersCount: 1, answers: { q1: 0 }, level: 'safe', sessionId: 'shared-session', milestone: 50 };
     const request = () => new Request('http://localhost', { method: 'POST', headers: { cookie: 'session=authenticated', 'content-type': 'application/json', 'x-forwarded-for': '192.0.2.1' }, body: JSON.stringify(payload) });
+    if (route !== 'track') {
+      for (const value of [undefined, 'invalid']) {
+        payload.sex = value;
+        assert.equal((await handlers.POST(request())).ok, false);
+        assert.equal(writes.length, 0);
+      }
+      payload.sex = 'female';
+    }
     assert.equal((await handlers.POST(request())).ok, true);
+    if (route !== 'track') {
+      assert.ok(writes.some((row) => row.sex === 'female'));
+      payload.sex = 'male';
+      assert.equal((await handlers.POST(request())).ok, true);
+      assert.ok(writes.some((row) => row.sex === 'male'));
+    }
     if (handlers.PATCH) assert.equal((await handlers.PATCH(request())).ok, true);
     assert.ok(writes.length > 0);
     for (const row of writes) {
@@ -92,3 +108,17 @@ for (const route of ['attempt', 'submit', 'track']) {
     }
   });
 }
+
+ test('agreements target the evaluated person without assigning a sex to their partner', () => {
+  const text = 'Est-il/elle content(e) quand vous vous sentez épanoui(e) ?';
+  assert.equal(language.adaptDiagnosticText(text, 'female'), 'Est-il/elle content(e) quand vous vous sentez épanouie ?');
+  assert.equal(language.adaptDiagnosticText(text, 'male'), 'Est-il/elle content(e) quand vous vous sentez épanoui ?');
+  assert.equal(language.adaptDiagnosticText('Je veux être seul(e)', 'female'), 'Je veux être seule');
+  assert.equal(language.adaptDiagnosticText('Vous n’êtes pas seule', 'male'), 'Vous n’êtes pas seul');
+  assert.equal(language.adaptDiagnosticText('Je suis fou/folle', 'female'), 'Je suis folle');
+  assert.equal(language.adaptDiagnosticText('Décide parfois seul(e)', 'female'), 'Décide parfois seul(e)');
+  assert.equal(language.adaptDiagnosticText('Tu es contraint·e de garder des secrets.', 'male'), 'Tu es contraint de garder des secrets.');
+  assert.equal(language.adaptDiagnosticText('Il / elle te photographie nu·e ou dévêtu·e.', 'female'), 'Il / elle te photographie nue ou dévêtue.');
+  assert.equal(language.adaptDiagnosticText('Tes proches se promènent nu·e·s.', 'male'), 'Tes proches se promènent nu·e·s.');
+  assert.equal(language.isDiagnosticSex('unknown'), false);
+});

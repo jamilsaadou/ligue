@@ -29,3 +29,9 @@ Diagnostics fournis :
 Les migrations d’ajout créent les questionnaires absents avec le statut actif. Elles conservent les questionnaires déjà présents (y compris leur statut) et ne modifient pas leurs questions ni les résultats existants. Relancer la commande n’exécute pas de nouveau une migration déjà appliquée ; cela ne rétablit donc pas un questionnaire supprimé après migration.
 
 Ne pas utiliser `prisma migrate reset` pour cette opération. Le seed général n’est pas la commande de déploiement des cinq diagnostics.
+
+## Sexe de la personne évaluée
+
+La migration `20261026120000_diagnostic_sex` ajoute un champ facultatif `sex` aux tentatives et aux résultats. Elle doit être appliquée avec `npm run diagnostics:deploy` avant de démarrer cette version du site, puis le client Prisma doit être régénéré avec `npx prisma generate`.
+
+Le nouveau parcours demande « Femme » ou « Homme » pour la personne évaluée (et non nécessairement la personne qui remplit le questionnaire). Les anciens résultats restent sans sexe renseigné ; les statistiques et leur export les présentent dans une catégorie distincte. Aucun profil utilisateur n’est modifié.

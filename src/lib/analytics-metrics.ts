@@ -99,6 +99,7 @@ export type AnalyticsDashboardData = {
   levels: Array<ChartItem & { key: string; color: string }>;
   durations: ChartItem[];
   modes: ChartItem[];
+  sexes: ChartItem[];
   topPages: ChartItem[];
   devices: ChartItem[];
   sources: ChartItem[];

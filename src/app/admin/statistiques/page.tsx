@@ -27,6 +27,9 @@ type ResultRow = {
   medium: Count;
   long: Count;
   veryLong: Count;
+  female: Count;
+  male: Count;
+  unspecifiedSex: Count;
   self: Count;
   other: Count;
 };
@@ -92,6 +95,9 @@ export default async function AdminStatsPage({
     COUNT(*) FILTER (WHERE "durationMs" >= 120000 AND "durationMs" < 300000) AS medium,
     COUNT(*) FILTER (WHERE "durationMs" >= 300000 AND "durationMs" < 600000) AS long,
     COUNT(*) FILTER (WHERE "durationMs" >= 600000) AS "veryLong",
+    COUNT(*) FILTER (WHERE sex = 'female') AS female,
+    COUNT(*) FILTER (WHERE sex = 'male') AS male,
+    COUNT(*) FILTER (WHERE sex IS NULL) AS "unspecifiedSex",
     COUNT(*) FILTER (WHERE mode = 'self') AS self,
     COUNT(*) FILTER (WHERE mode = 'other') AS other
   `;
@@ -287,6 +293,11 @@ export default async function AdminStatsPage({
       { label: "2 à moins de 5 min", value: number(summary?.medium) },
       { label: "5 à moins de 10 min", value: number(summary?.long) },
       { label: "10 min et plus", value: number(summary?.veryLong) },
+    ],
+    sexes: [
+      { label: "Femmes", value: number(summary?.female), color: "#0f766e" },
+      { label: "Hommes", value: number(summary?.male), color: "#4338ca" },
+      { label: "Non renseigné", value: number(summary?.unspecifiedSex), color: "#94a3b8" },
     ],
     modes: [
       { label: "Pour soi", value: number(summary?.self), color: "#4f46e5" },

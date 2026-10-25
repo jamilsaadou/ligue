@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { adaptDiagnosticText, isDiagnosticSex, type DiagnosticSex } from '@/lib/diagnostic-language';
 import CategoryIntroduction from '@/components/CategoryIntroduction';
 import LigueContacts from '@/components/LigueContacts';
 import DiagnosticResultShare from '@/components/DiagnosticResultShare';
@@ -94,6 +95,7 @@ interface CategoryScore {
 interface SavedProgress {
   version?: number;
   mode: Mode;
+  sex?: DiagnosticSex;
   diagnosticId: string;
   diagnosticSnapshot?: DiagnosticData;
   currentCategoryIndex: number;
@@ -253,6 +255,7 @@ export default function DiagnosticPage() {
   const [diagnosticLoadFailed, setDiagnosticLoadFailed] = useState(false);
   const [selectedDiagnosticId, setSelectedDiagnosticId] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>(null);
+  const [sex, setSex] = useState<DiagnosticSex | null>(null);
   const [currentCategoryIndex, setCurrentCategoryIndex] = useState(0);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
@@ -374,6 +377,7 @@ export default function DiagnosticPage() {
       const progressData: SavedProgress = {
         version: STORAGE_VERSION,
         mode,
+        sex: sex || undefined,
         diagnosticId: diagnostic.id,
         diagnosticSnapshot: diagnostic,
         currentCategoryIndex,
@@ -398,6 +402,7 @@ export default function DiagnosticPage() {
     diagnostic,
     isStarted,
     mode,
+    sex,
     showResults,
     attemptId,
     attemptStartedAt
@@ -437,6 +442,7 @@ export default function DiagnosticPage() {
       setSelectedDiagnosticId(savedProgress.diagnosticId);
       setDiagnostic(resumedDiagnostic);
       setMode(savedProgress.mode);
+      setSex(isDiagnosticSex(savedProgress.sex) ? savedProgress.sex : null);
       setSelectedCategoryIds(savedProgress.selectedCategoryIds || null);
       setShowCategoryIntro(Boolean(savedProgress.showCategoryIntro));
       setCurrentCategoryIndex(savedProgress.currentCategoryIndex);
@@ -457,6 +463,7 @@ export default function DiagnosticPage() {
       setShowResumeModal(false);
 
       if (
+        isDiagnosticSex(savedProgress.sex) &&
         !savedProgress.showResults &&
         savedProgress.diagnosticId !== DIAGNOSTIC_FALLBACK_ID
       ) {
@@ -467,6 +474,7 @@ export default function DiagnosticPage() {
             ...getClientAnalyticsContext(),
             attemptId: resumedAttemptId,
             diagnosticId: savedProgress.diagnosticId,
+            sex: savedProgress.sex,
             mode: savedProgress.mode || 'self',
             totalQuestions: resumedTotalQuestions,
             answersCount: resumedAnswersCount
@@ -533,6 +541,7 @@ export default function DiagnosticPage() {
 
   const handleSelectMode = (nextMode: Exclude<Mode, null>) => {
     setMode(nextMode);
+    setSex(null);
     setSelectedCategoryIds(null);
     setCurrentCategoryIndex(0);
     setCurrentQuestionIndex(0);
@@ -544,7 +553,7 @@ export default function DiagnosticPage() {
   };
 
   const handleBeginDiagnostic = () => {
-    if (!diagnostic || !mode) return;
+    if (!diagnostic || !mode || !sex) return;
     const nextAttemptId = crypto.randomUUID();
     const startedAt = new Date().toISOString();
     setAttemptId(nextAttemptId);
@@ -559,7 +568,7 @@ export default function DiagnosticPage() {
         eventCategory: 'diagnostic',
         diagnosticId: diagnostic.id,
         attemptId: nextAttemptId,
-        metadata: { mode, totalQuestions }
+        metadata: { mode, sex, totalQuestions }
       });
       return;
     }
@@ -572,6 +581,7 @@ export default function DiagnosticPage() {
         attemptId: nextAttemptId,
         diagnosticId: diagnostic.id,
         mode,
+        sex: sex || undefined,
         totalQuestions,
         answersCount: 0
       })
@@ -582,6 +592,7 @@ export default function DiagnosticPage() {
     if (
       !diagnostic ||
       diagnostic.id === DIAGNOSTIC_FALLBACK_ID ||
+      !sex ||
       !showResults ||
       hasSubmittedRef.current
     ) {
@@ -603,6 +614,7 @@ export default function DiagnosticPage() {
             diagnosticId: diagnostic.id,
             attemptId,
             mode,
+            sex: sex || undefined,
             totalScore,
             maxScore,
             level: alertLevel.level,
@@ -640,6 +652,7 @@ export default function DiagnosticPage() {
     categories,
     diagnostic,
     mode,
+    sex,
     showResults
   ]);
 
@@ -707,6 +720,7 @@ export default function DiagnosticPage() {
         const completedProgress: SavedProgress = {
           version: STORAGE_VERSION,
           mode,
+          sex: sex || undefined,
           diagnosticId: diagnostic.id,
           diagnosticSnapshot: diagnostic,
           currentCategoryIndex,
@@ -749,6 +763,7 @@ export default function DiagnosticPage() {
     setSelectedDiagnosticId(null);
     setDiagnostic(null);
     setMode(null);
+    setSex(null);
     setSelectedCategoryIds(null);
     setShowCategoryIntro(false);
     setCurrentCategoryIndex(0);
@@ -1044,9 +1059,26 @@ export default function DiagnosticPage() {
     );
   }
 
+  if (!sex && !showResults) {
+    return (
+      <div className="min-h-[calc(100vh-80px)] flex items-center justify-center px-4 py-8">
+        <section className="glass-card w-full max-w-2xl p-6 md:p-10" aria-labelledby="sex-title">
+          <h1 id="sex-title" className="text-2xl font-bold text-slate-900">{mode === 'other' ? 'La personne concernée est-elle une femme ou un homme ?' : 'Êtes-vous une femme ou un homme ?'}</h1>
+          <p className="mt-4 text-slate-600">Ce choix adapte les formulations du diagnostic et contribue aux statistiques anonymes. Il n’est pas associé à votre identité.</p>
+          <div className="mt-8 grid grid-cols-2 gap-4">
+            <button className="glass-button" onClick={() => setSex('female')}>Femme</button>
+            <button className="glass-button" onClick={() => setSex('male')}>Homme</button>
+          </div>
+          <button className="glass-button-outline mt-6" onClick={() => setMode(null)}>Retour</button>
+        </section>
+      </div>
+    );
+  }
+
   // Explain the chosen diagnostic before starting; category changes continue directly.
   if (showCategoryIntro && currentCategory && !showResults) {
     return <CategoryIntroduction
+      sex={sex}
       name={currentCategory.name}
       description={currentCategory.description}
       diagnosticName={!isStarted || currentCategoryIndex === 0 ? diagnostic?.title : undefined}
@@ -1314,6 +1346,7 @@ export default function DiagnosticPage() {
           </div>
         </div>
 
+        {mode === 'other' && <p className="mb-4 text-sm text-slate-600">Répondez comme si vous étiez la personne concernée : « vous » et « je » la désignent.</p>}
         {/* Question Card */}
         <AnimatePresence mode="wait">
           <motion.div
@@ -1325,10 +1358,7 @@ export default function DiagnosticPage() {
             className="glass-card p-5 md:p-8"
           >
             <h2 className="text-xl md:text-2xl font-semibold text-slate-900 mb-6 leading-relaxed">
-              {mode === 'other'
-                ? currentQuestion.text.replace(/vous/gi, 'cette personne').replace(/votre/gi, 'sa').replace(/vos/gi, 'ses')
-                : currentQuestion.text
-              }
+              {adaptDiagnosticText(currentQuestion.text, sex)}
             </h2>
 
             <div className="space-y-4">
@@ -1344,7 +1374,7 @@ export default function DiagnosticPage() {
                   transition={{ delay: index * 0.05 }}
                 >
                   <div className="radio-circle" />
-                  <span className="text-slate-800">{option.text}</span>
+                  <span className="text-slate-800">{adaptDiagnosticText(option.text, sex)}</span>
                 </motion.button>
               ))}
             </div>

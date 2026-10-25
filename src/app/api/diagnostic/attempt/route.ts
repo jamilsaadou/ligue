@@ -1,3 +1,4 @@
+import { isDiagnosticSex, type DiagnosticSex } from '@/lib/diagnostic-language';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import {
@@ -9,6 +10,7 @@ type AttemptPayload = ClientContext & {
   attemptId?: string;
   diagnosticId?: string;
   mode?: 'self' | 'other';
+  sex?: DiagnosticSex;
   totalQuestions?: number;
   answersCount?: number;
   milestone?: number;
@@ -23,6 +25,7 @@ export async function POST(request: Request) {
     if (
       !validId(payload.attemptId) ||
       !validId(payload.diagnosticId) ||
+      !isDiagnosticSex(payload.sex) ||
       !['self', 'other'].includes(payload.mode || '') ||
       !Number.isInteger(payload.totalQuestions) ||
       Number(payload.totalQuestions) <= 0
@@ -51,6 +54,7 @@ export async function POST(request: Request) {
             diagnosticId: payload.diagnosticId!,
             userId: null,
             sessionId: context.sessionId,
+            sex: payload.sex,
             mode: payload.mode!,
             totalQuestions: Number(payload.totalQuestions),
             answersCount: Math.max(0, Number(payload.answersCount) || 0),
@@ -86,6 +90,7 @@ export async function POST(request: Request) {
             utmMedium: context.utmMedium,
             utmCampaign: context.utmCampaign,
             metadata: {
+              sex: payload.sex,
               mode: payload.mode!,
               totalQuestions: Number(payload.totalQuestions)
             }
